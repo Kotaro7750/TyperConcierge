@@ -27,6 +27,13 @@ const common: Configuration = {
         exclude: /noe_modules/,
         loader: 'ts-loader'
       },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      }
     ]
   },
 

@@ -8,7 +8,7 @@ if (isDev) {
 
   require('electron-reload')(__dirname, {
     electron: path.resolve(__dirname, execPath),
-    forceHardReset: false,
+    forceHardReset: true,
     hardResetMethod: 'exit',
   });
 }
