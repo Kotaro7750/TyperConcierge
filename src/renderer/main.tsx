@@ -3,13 +3,7 @@ import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 
-const App = (): JSX.Element => {
-  return (
-    <div>
-      <h1>Hello</h1>
-    </div>
-  );
-};
+import { App } from './App';
 
 ReactDOM.render(
   <React.StrictMode>
