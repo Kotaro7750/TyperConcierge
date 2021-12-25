@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { TypingPane } from './TypingPane';
+import { StartSignal } from './StartSignal';
+import { TimerPane } from './TimerPane';
 
 import { useMilliSecondTimer } from './useMilliSecondTimer';
+import { useCountdownTimer } from './useCountdownTimer';
 
 export function App() {
   const [mode, setMode] = useState<Mode>('Ready');
   const [elapsedTime, startTimer, stopTimer, cancelTimer] = useMilliSecondTimer();
+  const [countdownTimer, startCountdownTimer, initCountdownTimer] = useCountdownTimer(3, () => startTyping());
 
   // キー入力のイベント
   useEffect(() => {
@@ -32,9 +36,10 @@ export function App() {
     if (mode === 'Ready') {
       switch (key) {
         case ' ':
-          startTyping();
+          startGame();
           break;
       }
+
     } else if (mode === 'Started') {
       if (' '.charCodeAt(0) <= key.charCodeAt(0) && key.charCodeAt(0) <= '~'.charCodeAt(0)) {
         dispatchEvent(new CustomEvent('printableKeydown', {
@@ -50,6 +55,10 @@ export function App() {
     stopTimer();
   }
 
+  function startGame() {
+    startCountdownTimer();
+  }
+
   function startTyping() {
     setMode('Started');
     startTimer();
@@ -58,12 +67,13 @@ export function App() {
   function cancelTyping() {
     setMode('Ready');
     cancelTimer();
+    initCountdownTimer();
   }
 
   function onClicked() {
     switch (mode) {
       case 'Ready':
-        startTyping();
+        startGame();
         break;
       case 'Started':
         cancelTyping();
@@ -79,10 +89,22 @@ export function App() {
   };
 
   return (
-    <div>
-      <button onClick={onClicked}>{mode}</button>
-      {elapsedTime / 1000}
-      {mode === 'Started' ? <TypingPane query={queryString} /> : undefined}
+    <div className='container-fluid'>
+      <div className='row'>
+        <div className='col-4'>
+          <StartSignal countdownTimer={countdownTimer} />
+        </div>
+        <div className='col-3 offset-1'>
+          <button onClick={onClicked} className='btn btn-lg btn-outline-secondary'>{mode}</button>
+        </div>
+        <div className='col-3 offset-1'>
+          <TimerPane elapsedTime={elapsedTime / 1000} />
+        </div>
+      </div>
+
+      <div className='row'>
+        {mode === 'Started' ? <div className='col-12'><TypingPane query={queryString} /></div> : undefined}
+      </div>
     </div>
   );
 }

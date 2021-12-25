@@ -17,7 +17,7 @@ function constructStyledStringElement(input: string, cursorPosition: number) {
   }
 
   return (
-    <span>{element}</span>
+    <span className='fs-3'>{element}</span>
   )
 }
 
@@ -25,8 +25,10 @@ export function RomanPane(props: { information: RomanPaneInformation }) {
   const romanString: string = props.information.romanString;
 
   return (
-    <div>
-      {constructStyledStringElement(romanString, props.information.currentCursorPosition)}
+    <div className='row'>
+      <div className='col-12 border border-4'>
+        {constructStyledStringElement(romanString, props.information.currentCursorPosition)}
+      </div>
     </div>
   );
 }
