@@ -202,24 +202,52 @@ function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
 // 入力補助用のローマ字文を生成する
 function generateRomanPaneInformation(chunkWithRomanList: ChunkWithRoman[], confirmedChunkList: ConfirmedChunk[], inflightChunk: InflightChunkWithRoman): RomanPaneInformation {
   let generatedString: string = '';
+  let missedPosition: number[] = [];
   let chunkId = 0;
+
+  let cursorPosition = 0;
 
   // 既に確定したチャンクについてはローマ字表現は確定している
   for (let confirmedChunk of confirmedChunkList) {
     chunkId = confirmedChunk.id + 1;
     generatedString += confirmedChunk.string;
+
+    let isMissed: boolean = false;
+    confirmedChunk.keyStrokeList.forEach(keyStrokeInformation => {
+      if (keyStrokeInformation.isHit) {
+        if (isMissed) {
+          missedPosition.push(cursorPosition);
+        }
+        isMissed = false;
+        cursorPosition++;
+      } else {
+        isMissed = true;
+      }
+    });
   }
 
-  let cursorPosition = generatedString.length;
 
   // 入力し終わっていたらこの時点でリターンする
   if (confirmedChunkList.length == chunkWithRomanList.length) {
-    return { romanString: generatedString, currentCursorPosition: cursorPosition };
+    return { romanString: generatedString, currentCursorPosition: cursorPosition, missedPosition: missedPosition };
   }
 
   // 現在入力中のチャンクはローマ字表現候補が限られている
   generatedString += reduceCandidate(inflightChunk.romanCandidateList[0].candidate);
-  cursorPosition += inflightChunk.cursorPositionList[0];
+
+  let isMissed: boolean = false;
+  inflightChunk.keyStrokeList.forEach(keyStrokeInformation => {
+    if (keyStrokeInformation.isHit) {
+      if (isMissed) {
+        missedPosition.push(cursorPosition);
+      }
+      isMissed = false;
+      cursorPosition++;
+    } else {
+      isMissed = true;
+    }
+  });
+
   chunkId = inflightChunk.id + 1;
 
   let strictNextChunkHeader = inflightChunk.romanCandidateList[0].strictNextChunkHeader;
@@ -252,19 +280,23 @@ function generateRomanPaneInformation(chunkWithRomanList: ChunkWithRoman[], conf
 
   return {
     romanString: generatedString,
-    currentCursorPosition: cursorPosition
+    currentCursorPosition: cursorPosition,
+    missedPosition: missedPosition,
   };
 }
 
 interface ConfirmedChunk {
   id: number,
   string: string,
+  keyStrokeList: KeyStrokeInformation[],
 }
 
 interface InflightChunkWithRoman extends ChunkWithRoman {
   id: number,
   // romanCandidateListのそれぞれに対応するカーソル位置の配列
-  cursorPositionList: number[]
+  cursorPositionList: number[],
+  // ミスタイプも含めたキーストロークのリスト
+  keyStrokeList: KeyStrokeInformation[],
 }
 
 function deepCopyChunkWithRoman(src: ChunkWithRoman): ChunkWithRoman {
@@ -297,7 +329,13 @@ function characterAtCursorPosition(candidate: string[], cursorPosition: number):
   return reduceCandidate(candidate)[cursorPosition] as PrintableASCII;
 }
 
-export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c: PrintableASCII) => void] {
+interface KeyStrokeInformation {
+  elapsedTime: number,
+  c: PrintableASCII,
+  isHit: boolean
+}
+
+export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c: PrintableASCII, elapsedTime: number) => void] {
   const [finished, setFinished] = useState<boolean>(false);
   const [sentence] = useState<string>(initSentence);
   const memorizedChunkWithRomanList = useMemo(() => constructChunkWithRomanList(parseSentence(sentence)), [sentence]);
@@ -309,7 +347,8 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
     ...deepCopyChunkWithRoman(memorizedChunkWithRomanList[0]),
     id: 0,
     // 候補数だけの0を要素とした配列
-    cursorPositionList: memorizedChunkWithRomanList[0].romanCandidateList.map(_ => 0)
+    cursorPositionList: memorizedChunkWithRomanList[0].romanCandidateList.map(_ => 0),
+    keyStrokeList: []
   });
 
   // あまりきれいではないが変更が起こった時のタイムスタンプの値を用いてメモ化を行う
@@ -319,7 +358,7 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
   // 現在入力中のチャンクに対して文字を入力して情報を更新する
   // もしチャンクが打ち終わりかつ最後のチャンクだった場合にはtrueを返す
   // それ以外はfalseを返す
-  function updateInflightChunk(c: PrintableASCII): boolean {
+  function updateInflightChunk(c: PrintableASCII, elapsedTime: number): boolean {
     let hitCandidateList: RomanCandidate[] = [];
     let hitCursorPositionList: number[] = [];
 
@@ -333,12 +372,23 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
       }
     });
 
+    let isHit: boolean;
     // 何かしらヒットしていたらヒットしていたものだけを残す
     if (hitCandidateList.length != 0) {
       inflightChunk.current.romanCandidateList = hitCandidateList;
       inflightChunk.current.cursorPositionList = hitCursorPositionList;
+      isHit = true;
+    } else {
+      isHit = false;
     }
 
+    const keyStrokeInformation: KeyStrokeInformation = {
+      elapsedTime: elapsedTime,
+      c: c,
+      isHit: isHit,
+    };
+
+    inflightChunk.current.keyStrokeList.push(keyStrokeInformation);
 
     let isFinish = false;
 
@@ -350,6 +400,8 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
         confirmedChunkList.current.push({
           id: inflightChunk.current.id,
           string: reduceCandidate(romanCandidate.candidate),
+          // TODO これディープコピーしなくていいの？
+          keyStrokeList: inflightChunk.current.keyStrokeList,
         });
 
         const strictNextChunkHeader = romanCandidate.strictNextChunkHeader;
@@ -369,6 +421,7 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
             id: nextInflightChunkId,
             ...nextInflightChunk,
             cursorPositionList: nextInflightChunk.romanCandidateList.map(_ => 0),
+            keyStrokeList: [],
           }
         } else {
           isFinish = true;
@@ -379,13 +432,13 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
     return isFinish;
   }
 
-  function onInput(c: PrintableASCII) {
+  function onInput(c: PrintableASCII, elapsedTime: number) {
     if (finished) {
       return
     }
 
     timeStamp.current = new Date().getTime();
-    const isFinish: boolean = updateInflightChunk(c);
+    const isFinish: boolean = updateInflightChunk(c, elapsedTime);
 
     if (isFinish) {
       onFinish();

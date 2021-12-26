@@ -41,10 +41,13 @@ export function App() {
       }
 
     } else if (mode === 'Started') {
-      if (' '.charCodeAt(0) <= key.charCodeAt(0) && key.charCodeAt(0) <= '~'.charCodeAt(0)) {
+      // ShiftとかAltとかの特殊文字を防ぐために長さでバリデーションをかける
+      // 本当はもっといいやり方をあるはず
+      if (key.length == 1 && ' '.charCodeAt(0) <= key.charCodeAt(0) && key.charCodeAt(0) <= '~'.charCodeAt(0)) {
         dispatchEvent(new CustomEvent('printableKeydown', {
           detail: {
-            key: e.key
+            key: e.key,
+            elapsedTime: elapsedTime,
           }
         }));
       }
@@ -81,8 +84,8 @@ export function App() {
     }
   }
 
-  const VIEW_STRING = '結婚記念日 いす 短歌 ホワイトホール 昨日 銀杏';
-  const TYPED_STRING = 'けっこんきねんび いす たんか ほわいとほーる きのう ぎんなん';
+  const VIEW_STRING = 'んんし んA';
+  const TYPED_STRING = 'んんし んA';
   const queryString: QueryString = {
     viewString: VIEW_STRING,
     hiraganaString: TYPED_STRING

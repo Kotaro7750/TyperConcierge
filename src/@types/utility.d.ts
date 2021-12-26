@@ -6,16 +6,18 @@ type PrintableASCII =
   ' ';
 
 type PrintableKeyDownEvent = {
-  key: PrintableASCII
+  key: PrintableASCII,
+  elapsedTime: number,
 };
 
 
 interface QueryString {
-  viewString: string
-  hiraganaString: string
+  viewString: string,
+  hiraganaString: string,
 }
 
 interface RomanPaneInformation {
-  romanString: string
-  currentCursorPosition: number
+  romanString: string,
+  currentCursorPosition: number,
+  missedPosition: number[],
 }

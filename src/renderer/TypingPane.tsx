@@ -10,7 +10,7 @@ export function TypingPane(props: { query: QueryString }) {
   useEffect(() => {
     let func = (e: CustomEventInit<PrintableKeyDownEvent>) => {
       if (e.detail !== undefined) {
-        handleInput(e.detail.key);
+        handleInput(e.detail.key,e.detail.elapsedTime);
       }
     };
 

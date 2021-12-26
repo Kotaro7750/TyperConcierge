@@ -1,19 +1,29 @@
 import React from 'react';
 
-function constructStyledStringElement(input: string, cursorPosition: number) {
+function constructStyledStringElement(information: RomanPaneInformation): JSX.Element {
+  const romanString = information.romanString;
+  const cursorPosition = information.currentCursorPosition;
+  const missPositionDict: { [key: number]: boolean } = {};
+
+  information.missedPosition.forEach(position => {
+    missPositionDict[position] = true;
+  });
+
   let element: JSX.Element[] = [];
 
-  for (let i = 0; i < input.length; ++i) {
+  for (let i = 0; i < romanString.length; ++i) {
     let cssClass;
-    if (i < cursorPosition) {
-      cssClass = 'text-secondary'
+    if (i in missPositionDict) {
+      cssClass = 'text-danger';
+    } else if (i < cursorPosition) {
+      cssClass = 'text-secondary';
     } else if (i == cursorPosition) {
-      cssClass = 'text-primary'
+      cssClass = 'text-primary';
     } else {
-      cssClass = ''
+      cssClass = '';
     }
 
-    element.push(<span key={i} className={cssClass}>{input[i]}</span>);
+    element.push(<span key={i} className={cssClass}>{romanString[i]}</span>);
   }
 
   return (
@@ -22,12 +32,10 @@ function constructStyledStringElement(input: string, cursorPosition: number) {
 }
 
 export function RomanPane(props: { information: RomanPaneInformation }) {
-  const romanString: string = props.information.romanString;
-
   return (
     <div className='row'>
       <div className='col-12 border border-4'>
-        {constructStyledStringElement(romanString, props.information.currentCursorPosition)}
+        {constructStyledStringElement(props.information)}
       </div>
     </div>
   );
