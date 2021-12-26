@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { hiraganaRomanDictionary } from './HiraganaRomanDictionary';
 import { isPrintableASCII, allowSingleN } from './utility';
 
@@ -170,9 +170,7 @@ function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
     // ひとまずは文字数の少ない候補を第一候補として選択する
     // TODO 文字数が最小の候補が複数ある場合に関しては設定で選べるようにする
     romanCandidateList.sort((a: RomanCandidate, b: RomanCandidate) => {
-      const aLength = a.candidate.reduce((prev, current) => prev + current.length, 0);
-      const bLength = b.candidate.reduce((prev, current) => prev + current.length, 0);
-      return aLength - bLength;
+      return reduceCandidate(a.candidate).length - reduceCandidate(b.candidate).length;
     });
 
     chunkWithRomanList[i] = { chunkString: chunkString, romanCandidateList: romanCandidateList };
@@ -201,19 +199,193 @@ function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
   return chunkWithRomanList;
 }
 
-export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c: Alphabet) => void] {
+// 入力補助用のローマ字文を生成する
+function generateRomanPaneInformation(chunkWithRomanList: ChunkWithRoman[], confirmedChunkList: ConfirmedChunk[], inflightChunk: InflightChunkWithRoman): RomanPaneInformation {
+  let generatedString: string = '';
+  let chunkId = 0;
+
+  // 既に確定したチャンクについてはローマ字表現は確定している
+  for (let confirmedChunk of confirmedChunkList) {
+    chunkId = confirmedChunk.id + 1;
+    generatedString += confirmedChunk.string;
+  }
+
+  let cursorPosition = generatedString.length;
+
+  // 入力し終わっていたらこの時点でリターンする
+  if (confirmedChunkList.length == chunkWithRomanList.length) {
+    return { romanString: generatedString, currentCursorPosition: cursorPosition };
+  }
+
+  // 現在入力中のチャンクはローマ字表現候補が限られている
+  generatedString += reduceCandidate(inflightChunk.romanCandidateList[0].candidate);
+  cursorPosition += inflightChunk.cursorPositionList[0];
+  chunkId = inflightChunk.id + 1;
+
+  let strictNextChunkHeader = inflightChunk.romanCandidateList[0].strictNextChunkHeader;
+
+  // 未確定のチャンクでは全ての候補から選択する
+  for (; chunkId < chunkWithRomanList.length; chunkId++) {
+    const chunkWithRoman = chunkWithRomanList[chunkId];
+
+    let candidate: string[] = chunkWithRoman.romanCandidateList[0].candidate;
+    let tmpStrict = chunkWithRoman.romanCandidateList[0].strictNextChunkHeader;
+
+    // 前のチャンクから先頭文字が制限されている可能性もある
+    if (strictNextChunkHeader != '' && candidate[0][0] != strictNextChunkHeader) {
+      for (let romanCandidate of chunkWithRoman.romanCandidateList) {
+        if (romanCandidate.candidate[0][0] == strictNextChunkHeader) {
+          candidate = romanCandidate.candidate;
+          tmpStrict = romanCandidate.strictNextChunkHeader;
+          break;
+        }
+      }
+
+      if (candidate[0][0] != strictNextChunkHeader) {
+        throw new Error(`${candidate[0]} in ${chunkWithRoman.chunkString} don't start with ${strictNextChunkHeader}`)
+      }
+    }
+
+    strictNextChunkHeader = tmpStrict;
+    generatedString += reduceCandidate(candidate);
+  }
+
+  return {
+    romanString: generatedString,
+    currentCursorPosition: cursorPosition
+  };
+}
+
+interface ConfirmedChunk {
+  id: number,
+  string: string,
+}
+
+interface InflightChunkWithRoman extends ChunkWithRoman {
+  id: number,
+  // romanCandidateListのそれぞれに対応するカーソル位置の配列
+  cursorPositionList: number[]
+}
+
+function deepCopyChunkWithRoman(src: ChunkWithRoman): ChunkWithRoman {
+  let dst: ChunkWithRoman = {
+    chunkString: src.chunkString,
+    romanCandidateList: [],
+  };
+
+  src.romanCandidateList.forEach(romanCandidate => {
+    let candidate: string[] = [];
+    romanCandidate.candidate.forEach(e => candidate.push(e));
+
+    dst.romanCandidateList.push({
+      candidate: candidate,
+      strictNextChunkHeader: romanCandidate.strictNextChunkHeader,
+    });
+  });
+
+  return dst;
+}
+
+// 複数文字に対応した候補を文字列に変換する
+// Ex. ['ki','lyo'] -> 'kilyo'
+function reduceCandidate(candidate: string[]): string {
+  return candidate.reduce((prev, current) => prev + current);
+}
+
+function characterAtCursorPosition(candidate: string[], cursorPosition: number): PrintableASCII {
+  // TODO あまりキャストしたくないのでそのうちPrintableASCIIでできたstring型を定義する必要があるかもしれない
+  return reduceCandidate(candidate)[cursorPosition] as PrintableASCII;
+}
+
+export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c: PrintableASCII) => void] {
+  const [finished, setFinished] = useState<boolean>(false);
   const [sentence] = useState<string>(initSentence);
-  const [cursorPosition, setCursorPosition] = useState(0);
   const memorizedChunkWithRomanList = useMemo(() => constructChunkWithRomanList(parseSentence(sentence)), [sentence]);
 
-  function onInput(c: Alphabet) {
-    let isFinish: boolean = false;
-    if (sentence[cursorPosition] == c) {
-      if (cursorPosition == sentence.length - 1) {
-        isFinish = true;
+  let confirmedChunkList = useRef<ConfirmedChunk[]>([]);
+
+  // 現在入力中のチャンク
+  let inflightChunk = useRef<InflightChunkWithRoman>({
+    ...deepCopyChunkWithRoman(memorizedChunkWithRomanList[0]),
+    id: 0,
+    // 候補数だけの0を要素とした配列
+    cursorPositionList: memorizedChunkWithRomanList[0].romanCandidateList.map(_ => 0)
+  });
+
+  // あまりきれいではないが変更が起こった時のタイムスタンプの値を用いてメモ化を行う
+  let timeStamp = useRef<number>(new Date().getTime());
+  const romanPaneInformation = useMemo(() => generateRomanPaneInformation(memorizedChunkWithRomanList, confirmedChunkList.current, inflightChunk.current), [timeStamp.current, sentence]);
+
+  // 現在入力中のチャンクに対して文字を入力して情報を更新する
+  // もしチャンクが打ち終わりかつ最後のチャンクだった場合にはtrueを返す
+  // それ以外はfalseを返す
+  function updateInflightChunk(c: PrintableASCII): boolean {
+    let hitCandidateList: RomanCandidate[] = [];
+    let hitCursorPositionList: number[] = [];
+
+    inflightChunk.current.romanCandidateList.forEach((romanCandidate: RomanCandidate, i: number) => {
+      const cursorPosition: number = inflightChunk.current.cursorPositionList[i];
+
+      // それぞれの候補にヒットしているかを確かめる
+      if (characterAtCursorPosition(romanCandidate.candidate, cursorPosition) == c) {
+        hitCandidateList.push(romanCandidate);
+        hitCursorPositionList.push(cursorPosition + 1);
       }
-      setCursorPosition((prevPosition) => prevPosition + 1);
+    });
+
+    // 何かしらヒットしていたらヒットしていたものだけを残す
+    if (hitCandidateList.length != 0) {
+      inflightChunk.current.romanCandidateList = hitCandidateList;
+      inflightChunk.current.cursorPositionList = hitCursorPositionList;
     }
+
+
+    let isFinish = false;
+
+    // チャンクが終了したときの処理
+    inflightChunk.current.romanCandidateList.forEach((romanCandidate, i) => {
+      // iは0インデックスなので候補の長さとなったとき（１つはみだしたとき）にチャンクが終了したと判定できる
+      if (reduceCandidate(romanCandidate.candidate).length == inflightChunk.current.cursorPositionList[i]) {
+        // 確定したチャンクにinflightChunkを追加する
+        confirmedChunkList.current.push({
+          id: inflightChunk.current.id,
+          string: reduceCandidate(romanCandidate.candidate),
+        });
+
+        const strictNextChunkHeader = romanCandidate.strictNextChunkHeader;
+
+        // 最後のチャンクだったらinflightChunkの更新処理は行わない
+        // 本来なら無効値にするべきなんだろうけど読み出されないのでそのままにする
+        if (inflightChunk.current.id != memorizedChunkWithRomanList.length - 1) {
+          const nextInflightChunkId = inflightChunk.current.id + 1;
+          const nextInflightChunk = deepCopyChunkWithRoman(memorizedChunkWithRomanList[nextInflightChunkId]);
+
+          // 次のチャンクの先頭が制限されているときには候補を枝刈りする必要がある
+          if (strictNextChunkHeader != '') {
+            nextInflightChunk.romanCandidateList = nextInflightChunk.romanCandidateList.filter(romanCandidate => romanCandidate.candidate[0][0] == strictNextChunkHeader);
+          }
+
+          inflightChunk.current = {
+            id: nextInflightChunkId,
+            ...nextInflightChunk,
+            cursorPositionList: nextInflightChunk.romanCandidateList.map(_ => 0),
+          }
+        } else {
+          isFinish = true;
+        }
+      }
+    });
+
+    return isFinish;
+  }
+
+  function onInput(c: PrintableASCII) {
+    if (finished) {
+      return
+    }
+
+    timeStamp.current = new Date().getTime();
+    const isFinish: boolean = updateInflightChunk(c);
 
     if (isFinish) {
       onFinish();
@@ -221,8 +393,9 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
   }
 
   function onFinish() {
+    setFinished(true);
     dispatchEvent(new CustomEvent('typingFinish'));
   }
 
-  return [{ romanString: sentence, currentCursorPosition: cursorPosition }, onInput];
+  return [romanPaneInformation, onInput];
 }

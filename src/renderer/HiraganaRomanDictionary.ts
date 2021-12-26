@@ -206,6 +206,6 @@ export const hiraganaRomanDictionary: { [hiragana: string]: ReadonlyArray<string
   'ん'  : ['n','nn','xn'],
   'ゎ'  : ['lwa','xwa'],
   // 記号
-  '　'  : [' ']
-  'ー'  : ['-']
+  '　'  : [' '],
+  'ー'  : ['-'],
 }

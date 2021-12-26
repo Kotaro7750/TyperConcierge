@@ -81,8 +81,8 @@ export function App() {
     }
   }
 
-  const VIEW_STRING = '結婚記念日 いす 短歌 ホワイトホール 昨日';
-  const TYPED_STRING = 'けっこんきねんび いす たんか ほわいとほーる きのう';
+  const VIEW_STRING = '結婚記念日 いす 短歌 ホワイトホール 昨日 銀杏';
+  const TYPED_STRING = 'けっこんきねんび いす たんか ほわいとほーる きのう ぎんなん';
   const queryString: QueryString = {
     viewString: VIEW_STRING,
     hiraganaString: TYPED_STRING
