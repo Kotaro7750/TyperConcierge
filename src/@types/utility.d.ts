@@ -12,7 +12,7 @@ type PrintableKeyDownEvent = {
 
 interface QueryString {
   viewString: string
-  romanString: string
+  hiraganaString: string
 }
 
 interface RomanPaneInformation {

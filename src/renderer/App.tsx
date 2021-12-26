@@ -81,11 +81,11 @@ export function App() {
     }
   }
 
-  const VIEW_STRING = '永遠 かみそり はまる 公園';
-  const TYPED_STRING = 'eien kamisori hamaru kouenn';
+  const VIEW_STRING = '結婚記念日 いす 短歌 ホワイトホール 昨日';
+  const TYPED_STRING = 'けっこんきねんび いす たんか ほわいとほーる きのう';
   const queryString: QueryString = {
     viewString: VIEW_STRING,
-    romanString: TYPED_STRING
+    hiraganaString: TYPED_STRING
   };
 
   return (

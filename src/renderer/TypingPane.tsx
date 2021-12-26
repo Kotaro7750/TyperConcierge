@@ -5,7 +5,7 @@ import { QueryPane } from './QueryPane';
 import { useRomanEngine } from './useRomanEngine';
 
 export function TypingPane(props: { query: QueryString }) {
-  const [romanPaneInformation, handleInput] = useRomanEngine(props.query.romanString);
+  const [romanPaneInformation, handleInput] = useRomanEngine(props.query.hiraganaString);
 
   useEffect(() => {
     let func = (e: CustomEventInit<PrintableKeyDownEvent>) => {
