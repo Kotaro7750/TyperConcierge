@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { ResultSummaryPane } from './ResultSummaryPane';
+import { reduceCandidate } from './RomanEngineUtility';
 
 function calcStatistics(src: TypingResult): TypingStatistics {
   let idealWordCount = 0;
@@ -9,7 +10,8 @@ function calcStatistics(src: TypingResult): TypingStatistics {
 
   for (let confirmedChunk of src.confirmedChunkList) {
     idealWordCount += confirmedChunk.minCandidateString.length;
-    inputWordCount += confirmedChunk.romanString.length;
+    // XXX inputWordCount += confirmedChunk.romanString.length;
+    inputWordCount += reduceCandidate(confirmedChunk.confirmedCandidate.candidate).length;
 
     confirmedChunk.keyStrokeList.forEach(keyStroke => {
       elapsedTime = keyStroke.elapsedTime;

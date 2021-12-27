@@ -31,7 +31,7 @@ export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): 
 
       <div className='row'>
         <div className='col-4 text-center fs-1'>
-          {wpm} 打/秒
+          {wpm} 打/分
         </div>
 
         <div className='col-4 text-center fs-1'>

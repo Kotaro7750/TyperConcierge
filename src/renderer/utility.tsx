@@ -24,11 +24,19 @@ export function allowSingleN(ncs: string, isLastChunk: boolean): boolean {
   }
 }
 
-export function constructStyledStringElement(str: string, cursorPosition: number, missedPosition: number[]): JSX.Element {
+// カーソル位置が配列になっているのは複数文字からなるチャンクをまとめて入力する場合があるため
+export function constructStyledStringElement(str: string, cursorPosition: number[], missedPosition: number[]): JSX.Element {
   const missedPositionDict: { [key: number]: boolean } = {};
+  const cursorPositionDict: { [key:number]: boolean } = {};
 
   missedPosition.forEach(position => {
     missedPositionDict[position] = true;
+  });
+
+  let minCursorPosition = cursorPosition[0];
+  cursorPosition.forEach(position => {
+    minCursorPosition = position < minCursorPosition ? position : minCursorPosition;
+    cursorPositionDict[position] = true;
   });
 
   let element: JSX.Element[] = [];
@@ -37,9 +45,9 @@ export function constructStyledStringElement(str: string, cursorPosition: number
     let cssClass;
     if (i in missedPositionDict) {
       cssClass = 'text-danger';
-    } else if (i < cursorPosition) {
+    } else if (i < minCursorPosition) {
       cssClass = 'text-secondary';
-    } else if (i == cursorPosition) {
+    } else if (i in cursorPositionDict) {
       cssClass = 'text-primary';
     } else {
       cssClass = '';

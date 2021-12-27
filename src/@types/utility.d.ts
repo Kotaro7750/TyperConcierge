@@ -34,7 +34,8 @@ interface ChunkWithRoman extends Chunk {
 
 interface ConfirmedChunk {
   id: number,
-  romanString: string,
+  //romanString: string,
+  confirmedCandidate: RomanCandidate,
   // このチャンクのローマ字表現の最短となるもの
   minCandidateString: string,
   keyStrokeList: KeyStrokeInformation[],
@@ -75,8 +76,9 @@ interface RomanPaneInformation {
 
 interface QuerySentencePaneInformation {
   // ひらがな文自体は既にあるのでわざわざ渡す必要はない
-  // ひらがな文でのカーソル位置・位置
-  hiraganaCursorPosition: number,
+  // ひらがな文（表示用文ではない）でのカーソル位置・位置
+  // 複数文字をまとめて入力する場合もあるので配列にしている
+  hiraganaCursorPosition: number[],
   missedPosition: number[],
 }
 

@@ -5,7 +5,7 @@ export function QueryPane(props: { input: QueryInformation, information: QuerySe
   const queryInformation = props.input;
   const querySentencePaneInformation = props.information;
 
-  const viewStringCursorPosition = queryInformation.viewStringPositionOfHiraganaString[querySentencePaneInformation.hiraganaCursorPosition];
+  const viewStringCursorPosition = querySentencePaneInformation.hiraganaCursorPosition.map(i => queryInformation.viewStringPositionOfHiraganaString[i]);
   const viewStringMissedPosition = querySentencePaneInformation.missedPosition.map(position => queryInformation.viewStringPositionOfHiraganaString[position]);
 
   return (

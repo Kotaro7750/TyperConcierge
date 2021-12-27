@@ -89,8 +89,8 @@ export function App() {
     }
   }
 
-  const VIEW_STRING = 'きゅうり';
-  const TYPED_STRING = 'きゅうり';
+  const VIEW_STRING = 'きょだい';
+  const TYPED_STRING = 'きょだい';
   const VIEW_POSITION_HIRAGANA_STRING = [0, 1, 2, 3];
 
   const queryInformation: QueryInformation = {

@@ -81,6 +81,5 @@ const renderer: Configuration = {
   ],
 };
 
-console.log(isDev);
 const config = isDev ? [renderer] : [main, preload, renderer];
 export default config;
