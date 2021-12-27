@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TypingPane } from './TypingPane';
 import { StartSignal } from './StartSignal';
 import { TimerPane } from './TimerPane';
+import { ResultPane } from './ResultPane';
 
 import { useMilliSecondTimer } from './useMilliSecondTimer';
 import { useCountdownTimer } from './useCountdownTimer';
@@ -10,6 +11,8 @@ export function App() {
   const [mode, setMode] = useState<Mode>('Ready');
   const [elapsedTime, startTimer, stopTimer, cancelTimer] = useMilliSecondTimer();
   const [countdownTimer, startCountdownTimer, initCountdownTimer] = useCountdownTimer(3, () => startTyping());
+
+  let typingResult = useRef<TypingResult>();
 
   // キー入力のイベント
   useEffect(() => {
@@ -42,7 +45,7 @@ export function App() {
 
     } else if (mode === 'Started') {
       // ShiftとかAltとかの特殊文字を防ぐために長さでバリデーションをかける
-      // 本当はもっといいやり方をあるはず
+      // 本当はもっといいやり方があるはず
       if (key.length == 1 && ' '.charCodeAt(0) <= key.charCodeAt(0) && key.charCodeAt(0) <= '~'.charCodeAt(0)) {
         dispatchEvent(new CustomEvent('printableKeydown', {
           detail: {
@@ -54,8 +57,10 @@ export function App() {
     }
   }
 
-  function onTypingFinish(e: CustomEventInit) {
+  function onTypingFinish(e: CustomEventInit<TypingFinishEvent>) {
     stopTimer();
+    typingResult.current = e.detail;
+    setMode('Finished');
   }
 
   function startGame() {
@@ -84,8 +89,9 @@ export function App() {
     }
   }
 
-  const VIEW_STRING = 'んんし んA';
-  const TYPED_STRING = 'んんし んA';
+  const VIEW_STRING = '妙';
+  const TYPED_STRING = 'みょう';
+
   const queryString: QueryString = {
     viewString: VIEW_STRING,
     hiraganaString: TYPED_STRING
@@ -106,7 +112,11 @@ export function App() {
       </div>
 
       <div className='row'>
-        {mode === 'Started' ? <div className='col-12'><TypingPane query={queryString} /></div> : undefined}
+        {
+          mode === 'Started' ? <div className='col-12'><TypingPane query={queryString} /></div>
+            : mode === 'Finished' ? <div className='col-12'><ResultPane result={typingResult.current} /></div>
+              : undefined
+        }
       </div>
     </div>
   );

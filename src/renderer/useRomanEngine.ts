@@ -2,23 +2,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { hiraganaRomanDictionary } from './HiraganaRomanDictionary';
 import { isPrintableASCII, allowSingleN } from './utility';
 
-interface Chunk {
-  chunkString: string
-};
-
-// チャンクのローマ字表現候補の１つを表す
-// 候補が配列になっているのは，ひらがな２文字以上のときに１文字ずつ入力しても上手く扱えるようにするため（現在打っている文字をハイライトする時などの利用を想定）
-// Ex. 「きょ」というチャンクの候補の１つである「kilyo」に対しては，['ki','lyo']とする
-interface RomanCandidate {
-  candidate: string[],
-  // 「っ」を連続する子音などで表現する場合に次のチャンクの先頭が制限するために使う
-  strictNextChunkHeader: string,
-}
-
-interface ChunkWithRoman extends Chunk {
-  romanCandidateList: RomanCandidate[]
-}
-
 // Uni,Bi-gramを用いて文章を入力単位に分割する
 // Ex. "ひじょうに big" -> ['ひ','じょ','う','に',' ','b','i','g']
 function parseSentence(input: string): Chunk[] {
@@ -173,7 +156,13 @@ function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
       return reduceCandidate(a.candidate).length - reduceCandidate(b.candidate).length;
     });
 
-    chunkWithRomanList[i] = { chunkString: chunkString, romanCandidateList: romanCandidateList };
+    chunkWithRomanList[i] = {
+      chunkString: chunkString,
+      // 最短の候補を選んでいけば文章全体でも最短になるはず（候補のソートは安定ソートだと思う）
+      // もし安定ソートじゃないと，「っち」が「cti」とするのが最短みたいになってしまうかもしれない（[['t'],['c'],['ltu']...]と['ti','chi']にはなってるけどtとcが逆転してしまう）
+      minCandidateString: reduceCandidate(romanCandidateList[0].candidate),
+      romanCandidateList: romanCandidateList,
+    };
     nextChunkString = chunkString;
 
     nextChunkCanLtuByRepeatList = [];
@@ -183,7 +172,7 @@ function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
       let isDuplicate: { [key: string]: boolean } = {};
 
       romanCandidateList.forEach(romanCandidate => {
-        const head = romanCandidate['candidate'][0][0];
+        const head = characterAtCursorPosition(romanCandidate.candidate, 0);
         // 次のチャンクの先頭が「n」を除く子音の可能性がある場合に促音を子音などの連続で表せる
         if (head != 'a' && head != 'i' && head != 'u' && head != 'e' && head != 'o' && head != 'n') {
           if (!(head in isDuplicate)) {
@@ -195,7 +184,6 @@ function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
     }
   }
 
-  console.log(chunkWithRomanList);
   return chunkWithRomanList;
 }
 
@@ -285,23 +273,10 @@ function generateRomanPaneInformation(chunkWithRomanList: ChunkWithRoman[], conf
   };
 }
 
-interface ConfirmedChunk {
-  id: number,
-  string: string,
-  keyStrokeList: KeyStrokeInformation[],
-}
-
-interface InflightChunkWithRoman extends ChunkWithRoman {
-  id: number,
-  // romanCandidateListのそれぞれに対応するカーソル位置の配列
-  cursorPositionList: number[],
-  // ミスタイプも含めたキーストロークのリスト
-  keyStrokeList: KeyStrokeInformation[],
-}
-
 function deepCopyChunkWithRoman(src: ChunkWithRoman): ChunkWithRoman {
   let dst: ChunkWithRoman = {
     chunkString: src.chunkString,
+    minCandidateString: src.minCandidateString,
     romanCandidateList: [],
   };
 
@@ -329,12 +304,6 @@ function characterAtCursorPosition(candidate: string[], cursorPosition: number):
   return reduceCandidate(candidate)[cursorPosition] as PrintableASCII;
 }
 
-interface KeyStrokeInformation {
-  elapsedTime: number,
-  c: PrintableASCII,
-  isHit: boolean
-}
-
 export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c: PrintableASCII, elapsedTime: number) => void] {
   const [finished, setFinished] = useState<boolean>(false);
   const [sentence] = useState<string>(initSentence);
@@ -346,6 +315,7 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
   let inflightChunk = useRef<InflightChunkWithRoman>({
     ...deepCopyChunkWithRoman(memorizedChunkWithRomanList[0]),
     id: 0,
+    minCandidateString: reduceCandidate(memorizedChunkWithRomanList[0].romanCandidateList[0].candidate),
     // 候補数だけの0を要素とした配列
     cursorPositionList: memorizedChunkWithRomanList[0].romanCandidateList.map(_ => 0),
     keyStrokeList: []
@@ -393,6 +363,7 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
     let isFinish = false;
 
     // チャンクが終了したときの処理
+    // 「っっち」を「ltutti」と打ちたい場合でも最初の「l」を入力した段階で１つ目のチャンクが終了してしまうがこれは仕様とする
     inflightChunk.current.romanCandidateList.forEach((romanCandidate, i) => {
       // iは0インデックスなので候補の長さとなったとき（１つはみだしたとき）にチャンクが終了したと判定できる
       if (reduceCandidate(romanCandidate.candidate).length == inflightChunk.current.cursorPositionList[i]) {
@@ -400,29 +371,38 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
         confirmedChunkList.current.push({
           id: inflightChunk.current.id,
           string: reduceCandidate(romanCandidate.candidate),
+          minCandidateString: inflightChunk.current.minCandidateString,
           // TODO これディープコピーしなくていいの？
           keyStrokeList: inflightChunk.current.keyStrokeList,
         });
 
         const strictNextChunkHeader = romanCandidate.strictNextChunkHeader;
 
-        // 最後のチャンクだったらinflightChunkの更新処理は行わない
-        // 本来なら無効値にするべきなんだろうけど読み出されないのでそのままにする
+        // inflightChunkを更新する
         if (inflightChunk.current.id != memorizedChunkWithRomanList.length - 1) {
           const nextInflightChunkId = inflightChunk.current.id + 1;
           const nextInflightChunk = deepCopyChunkWithRoman(memorizedChunkWithRomanList[nextInflightChunkId]);
 
+          // 枝刈りする前にやらないと全体でみた最短にならないことがある
+          // Ex. 「たっっち」を「tal」と入力していたときに「tatltuti」が最短とされてしまう
+          const minCandidateString = reduceCandidate(nextInflightChunk.romanCandidateList[0].candidate);
+
           // 次のチャンクの先頭が制限されているときには候補を枝刈りする必要がある
           if (strictNextChunkHeader != '') {
-            nextInflightChunk.romanCandidateList = nextInflightChunk.romanCandidateList.filter(romanCandidate => romanCandidate.candidate[0][0] == strictNextChunkHeader);
+            nextInflightChunk.romanCandidateList = nextInflightChunk.romanCandidateList.filter(romanCandidate => characterAtCursorPosition(romanCandidate.candidate, 0) == strictNextChunkHeader);
           }
+
 
           inflightChunk.current = {
             id: nextInflightChunkId,
             ...nextInflightChunk,
+            // もともとのmemorizedChunkWithRomanListが短い順にソートされているので0番目のインデックスに最短のローマ字表現候補が入っている
+            minCandidateString: minCandidateString,
             cursorPositionList: nextInflightChunk.romanCandidateList.map(_ => 0),
             keyStrokeList: [],
           }
+          // 最後のチャンクだったらinflightChunkの更新処理は行わない
+          // 本来なら無効値にするべきなんだろうけど読み出されないのでそのままにする
         } else {
           isFinish = true;
         }
@@ -447,7 +427,11 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
 
   function onFinish() {
     setFinished(true);
-    dispatchEvent(new CustomEvent('typingFinish'));
+    dispatchEvent(new CustomEvent<TypingFinishEvent>('typingFinish', {
+      detail: {
+        confirmedChunkList: confirmedChunkList.current,
+      }
+    }));
   }
 
   return [romanPaneInformation, onInput];

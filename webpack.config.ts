@@ -33,6 +33,10 @@ const common: Configuration = {
           'style-loader',
           'css-loader'
         ]
+      },
+      {
+        test: /\.svg$/,
+        loader: 'url-loader',
       }
     ]
   },
