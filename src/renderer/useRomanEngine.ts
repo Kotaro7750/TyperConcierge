@@ -219,11 +219,14 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
     });
 
     // このチャンクのローマ字系列で一回でもミスしていたらこのチャンクではミスしていると判定する
+    // 複数文字から成るチャンクの可能性があるためミスしたら全ての文字をミス登録する
     // TODO ２文字を分割入力したときの対応
-    if (isMissedInChunk) {
-      hiraganaMissedPosition.push(hiraganaCursorPosition);
+    for (let i = 0; i < chunkWithRomanList[chunkId].chunkString.length; i++) {
+      if (isMissedInChunk) {
+        hiraganaMissedPosition.push(hiraganaCursorPosition);
+      }
+      hiraganaCursorPosition++;
     }
-    hiraganaCursorPosition += chunkWithRomanList[chunkId].chunkString.length;
 
     chunkId = confirmedChunk.id + 1;
   }
@@ -395,8 +398,10 @@ export function useRomanEngine(initSentence: string): [SentenceViewPaneInformati
     // チャンクが終了したときの処理
     // 「っっち」を「ltutti」と打ちたい場合でも最初の「l」を入力した段階で１つ目のチャンクが終了してしまうがこれは仕様とする
     inflightChunk.current.romanCandidateList.forEach((romanCandidate, i) => {
+
       // iは0インデックスなので候補の長さとなったとき（１つはみだしたとき）にチャンクが終了したと判定できる
       if (reduceCandidate(romanCandidate.candidate).length == inflightChunk.current.cursorPositionList[i]) {
+
         // 確定したチャンクにinflightChunkを追加する
         confirmedChunkList.current.push({
           id: inflightChunk.current.id,

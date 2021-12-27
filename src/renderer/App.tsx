@@ -89,9 +89,9 @@ export function App() {
     }
   }
 
-  const VIEW_STRING = '妙だな';
-  const TYPED_STRING = 'みょうだな';
-  const VIEW_POSITION_HIRAGANA_STRING = [0, 0, 0, 1, 2];
+  const VIEW_STRING = 'きゅうり';
+  const TYPED_STRING = 'きゅうり';
+  const VIEW_POSITION_HIRAGANA_STRING = [0, 1, 2, 3];
 
   const queryInformation: QueryInformation = {
     viewString: VIEW_STRING,

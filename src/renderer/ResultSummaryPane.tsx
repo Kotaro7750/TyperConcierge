@@ -10,9 +10,9 @@ export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): 
   // WPMは切り捨て
   const wpm = Math.floor(wordCount * 60000 / summary.totalTime);
 
-  // WPM x ( 正確率 )^3
+  // WPM x ( 正確率 )^3 の小数点以下切り捨て
   // 実際のeタイピングはwordCountとしてidealじゃなくて実際の打ったローマ字数を使っている
-  const eTypingScore = wpm * (accuracy / 100) ** 3;
+  const eTypingScore = Math.floor(wpm * (accuracy / 100) ** 3);
 
   const WORD_COUNT_IDEAL_HELP = 'オン:タイプ数が最も少なくなるようなローマ字系列の字数で計算します\
   \nオフ:実際にタイプしたローマ字系列の字数で計算します\
@@ -35,7 +35,7 @@ export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): 
         </div>
 
         <div className='col-4 text-center fs-1'>
-          {accuracy}%
+          {accuracy - Math.floor(accuracy) == 0 ? accuracy.toFixed(0) : accuracy.toFixed(2)}%
         </div>
 
         <div className='col-4 text-center fs-1'>
@@ -45,7 +45,7 @@ export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): 
 
       <div className='row'>
         <div className='col-4 text-center fs-5'>
-          {wordCount}
+          {wordCount}字
         </div>
 
         <div className='col-4 text-center fs-5'>
