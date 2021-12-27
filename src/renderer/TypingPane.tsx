@@ -23,12 +23,13 @@ export function TypingPane(props: { queryInformation: QueryInformation }) {
     <>
       <div className='row'>
         <div className='col-12'>
-          <RomanPane information={sentenceViewPaneInformation.romanPaneInformation} />
+          <QueryPane input={props.queryInformation} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />
         </div>
       </div>
+
       <div className='row'>
         <div className='col-12'>
-          <QueryPane input={props.queryInformation} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />
+          <RomanPane information={sentenceViewPaneInformation.romanPaneInformation} />
         </div>
       </div>
     </>

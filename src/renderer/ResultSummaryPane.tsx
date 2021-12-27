@@ -14,10 +14,10 @@ export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): 
   // 実際のeタイピングはwordCountとしてidealじゃなくて実際の打ったローマ字数を使っている
   const eTypingScore = wpm * (accuracy / 100) ** 3;
 
-  const WORD_COUNT_IDEAL_HELP = 'オン:タイプ数が最も少なくなるようなローマ字系列の字数で計算\
-  \nオフ:実際にタイプしたローマ字系列の字数で計算\
-  \nEx. 「きょう」を「kilyou」と打った場合にはオンにすると4字（kyou）、オフにすると6字打ったことになる\
-  \nオンにすると実際にタイプした文字数よりも少なくなるのでWPM・スコアは低くなる';
+  const WORD_COUNT_IDEAL_HELP = 'オン:タイプ数が最も少なくなるようなローマ字系列の字数で計算します\
+  \nオフ:実際にタイプしたローマ字系列の字数で計算します\
+  \nEx. 「きょう」を「kilyou」と打った場合にはオンにすると4字（kyou）、オフにすると6字打ったことになります\
+  \nオンにすると実際にタイプした文字数よりも少なくなるのでWPM・スコアは低くなります';
 
 
   return (
