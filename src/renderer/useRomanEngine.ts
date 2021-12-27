@@ -187,50 +187,74 @@ function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
   return chunkWithRomanList;
 }
 
-// 入力補助用のローマ字文を生成する
-function generateRomanPaneInformation(chunkWithRomanList: ChunkWithRoman[], confirmedChunkList: ConfirmedChunk[], inflightChunk: InflightChunkWithRoman): RomanPaneInformation {
-  let generatedString: string = '';
-  let missedPosition: number[] = [];
+// 表示用の情報を構築する
+function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman[], confirmedChunkList: ConfirmedChunk[], inflightChunk: InflightChunkWithRoman): SentenceViewPaneInformation {
   let chunkId = 0;
 
-  let cursorPosition = 0;
+  let romanString: string = '';
+  let romanMissedPosition: number[] = [];
+  let romanCursorPosition = 0;
+
+  let hiraganaMissedPosition: number[] = [];
+  let hiraganaCursorPosition = 0;
 
   // 既に確定したチャンクについてはローマ字表現は確定している
   for (let confirmedChunk of confirmedChunkList) {
-    chunkId = confirmedChunk.id + 1;
-    generatedString += confirmedChunk.string;
+    romanString += confirmedChunk.romanString;
 
     let isMissed: boolean = false;
+    let isMissedInChunk: boolean = false;
     confirmedChunk.keyStrokeList.forEach(keyStrokeInformation => {
+      // 同じ位置で複数回ミスした時に重複するのを避ける
       if (keyStrokeInformation.isHit) {
         if (isMissed) {
-          missedPosition.push(cursorPosition);
+          romanMissedPosition.push(romanCursorPosition);
         }
         isMissed = false;
-        cursorPosition++;
+        romanCursorPosition++;
       } else {
         isMissed = true;
+        isMissedInChunk = true;
       }
     });
+
+    // このチャンクのローマ字系列で一回でもミスしていたらこのチャンクではミスしていると判定する
+    // TODO ２文字を分割入力したときの対応
+    if (isMissedInChunk) {
+      hiraganaMissedPosition.push(hiraganaCursorPosition);
+    }
+    hiraganaCursorPosition += chunkWithRomanList[chunkId].chunkString.length;
+
+    chunkId = confirmedChunk.id + 1;
   }
 
 
   // 入力し終わっていたらこの時点でリターンする
   if (confirmedChunkList.length == chunkWithRomanList.length) {
-    return { romanString: generatedString, currentCursorPosition: cursorPosition, missedPosition: missedPosition };
+    return {
+      querySentencePaneInforamtion: {
+        hiraganaCursorPosition: hiraganaCursorPosition,
+        missedPosition: hiraganaMissedPosition,
+      },
+      romanPaneInformation: {
+        romanString: romanString,
+        currentCursorPosition: romanCursorPosition,
+        missedPosition: romanMissedPosition,
+      }
+    };
   }
 
   // 現在入力中のチャンクはローマ字表現候補が限られている
-  generatedString += reduceCandidate(inflightChunk.romanCandidateList[0].candidate);
+  romanString += reduceCandidate(inflightChunk.romanCandidateList[0].candidate);
 
   let isMissed: boolean = false;
   inflightChunk.keyStrokeList.forEach(keyStrokeInformation => {
     if (keyStrokeInformation.isHit) {
       if (isMissed) {
-        missedPosition.push(cursorPosition);
+        romanMissedPosition.push(romanCursorPosition);
       }
       isMissed = false;
-      cursorPosition++;
+      romanCursorPosition++;
     } else {
       isMissed = true;
     }
@@ -263,13 +287,19 @@ function generateRomanPaneInformation(chunkWithRomanList: ChunkWithRoman[], conf
     }
 
     strictNextChunkHeader = tmpStrict;
-    generatedString += reduceCandidate(candidate);
+    romanString += reduceCandidate(candidate);
   }
 
   return {
-    romanString: generatedString,
-    currentCursorPosition: cursorPosition,
-    missedPosition: missedPosition,
+    querySentencePaneInforamtion: {
+      hiraganaCursorPosition: hiraganaCursorPosition,
+      missedPosition: hiraganaMissedPosition,
+    },
+    romanPaneInformation: {
+      romanString: romanString,
+      currentCursorPosition: romanCursorPosition,
+      missedPosition: romanMissedPosition,
+    },
   };
 }
 
@@ -304,7 +334,7 @@ function characterAtCursorPosition(candidate: string[], cursorPosition: number):
   return reduceCandidate(candidate)[cursorPosition] as PrintableASCII;
 }
 
-export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c: PrintableASCII, elapsedTime: number) => void] {
+export function useRomanEngine(initSentence: string): [SentenceViewPaneInformation, (c: PrintableASCII, elapsedTime: number) => void] {
   const [finished, setFinished] = useState<boolean>(false);
   const [sentence] = useState<string>(initSentence);
   const memorizedChunkWithRomanList = useMemo(() => constructChunkWithRomanList(parseSentence(sentence)), [sentence]);
@@ -323,7 +353,7 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
 
   // あまりきれいではないが変更が起こった時のタイムスタンプの値を用いてメモ化を行う
   let timeStamp = useRef<number>(new Date().getTime());
-  const romanPaneInformation = useMemo(() => generateRomanPaneInformation(memorizedChunkWithRomanList, confirmedChunkList.current, inflightChunk.current), [timeStamp.current, sentence]);
+  const sentenceViewPaneInformation = useMemo(() => constructSentenceViewPaneInformation(memorizedChunkWithRomanList, confirmedChunkList.current, inflightChunk.current), [timeStamp.current, sentence]);
 
   // 現在入力中のチャンクに対して文字を入力して情報を更新する
   // もしチャンクが打ち終わりかつ最後のチャンクだった場合にはtrueを返す
@@ -370,7 +400,7 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
         // 確定したチャンクにinflightChunkを追加する
         confirmedChunkList.current.push({
           id: inflightChunk.current.id,
-          string: reduceCandidate(romanCandidate.candidate),
+          romanString: reduceCandidate(romanCandidate.candidate),
           minCandidateString: inflightChunk.current.minCandidateString,
           // TODO これディープコピーしなくていいの？
           keyStrokeList: inflightChunk.current.keyStrokeList,
@@ -434,5 +464,5 @@ export function useRomanEngine(initSentence: string): [RomanPaneInformation, (c:
     }));
   }
 
-  return [romanPaneInformation, onInput];
+  return [sentenceViewPaneInformation, onInput];
 }

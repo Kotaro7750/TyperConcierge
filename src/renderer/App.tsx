@@ -89,12 +89,14 @@ export function App() {
     }
   }
 
-  const VIEW_STRING = '妙';
-  const TYPED_STRING = 'みょう';
+  const VIEW_STRING = '妙だな';
+  const TYPED_STRING = 'みょうだな';
+  const VIEW_POSITION_HIRAGANA_STRING = [0, 0, 0, 1, 2];
 
-  const queryString: QueryString = {
+  const queryInformation: QueryInformation = {
     viewString: VIEW_STRING,
-    hiraganaString: TYPED_STRING
+    hiraganaString: TYPED_STRING,
+    viewStringPositionOfHiraganaString: VIEW_POSITION_HIRAGANA_STRING,
   };
 
   return (
@@ -113,7 +115,7 @@ export function App() {
 
       <div className='row'>
         {
-          mode === 'Started' ? <div className='col-12'><TypingPane query={queryString} /></div>
+          mode === 'Started' ? <div className='col-12'><TypingPane queryInformation={queryInformation} /></div>
             : mode === 'Finished' ? <div className='col-12'><ResultPane result={typingResult.current} /></div>
               : undefined
         }

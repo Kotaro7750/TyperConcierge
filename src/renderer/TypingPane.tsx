@@ -4,13 +4,13 @@ import { QueryPane } from './QueryPane';
 
 import { useRomanEngine } from './useRomanEngine';
 
-export function TypingPane(props: { query: QueryString }) {
-  const [romanPaneInformation, handleInput] = useRomanEngine(props.query.hiraganaString);
+export function TypingPane(props: { queryInformation: QueryInformation }) {
+  const [sentenceViewPaneInformation, handleInput] = useRomanEngine(props.queryInformation.hiraganaString);
 
   useEffect(() => {
     let func = (e: CustomEventInit<PrintableKeyDownEvent>) => {
       if (e.detail !== undefined) {
-        handleInput(e.detail.key,e.detail.elapsedTime);
+        handleInput(e.detail.key, e.detail.elapsedTime);
       }
     };
 
@@ -23,12 +23,12 @@ export function TypingPane(props: { query: QueryString }) {
     <>
       <div className='row'>
         <div className='col-12'>
-          <RomanPane information={romanPaneInformation} />
+          <RomanPane information={sentenceViewPaneInformation.romanPaneInformation} />
         </div>
       </div>
       <div className='row'>
         <div className='col-12'>
-          <QueryPane input={props.query.viewString} />
+          <QueryPane input={props.queryInformation} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />
         </div>
       </div>
     </>

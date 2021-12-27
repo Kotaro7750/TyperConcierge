@@ -9,7 +9,7 @@ function calcStatistics(src: TypingResult): TypingStatistics {
 
   for (let confirmedChunk of src.confirmedChunkList) {
     idealWordCount += confirmedChunk.minCandidateString.length;
-    inputWordCount += confirmedChunk.string.length;
+    inputWordCount += confirmedChunk.romanString.length;
 
     confirmedChunk.keyStrokeList.forEach(keyStroke => {
       elapsedTime = keyStroke.elapsedTime;

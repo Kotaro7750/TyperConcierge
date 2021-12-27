@@ -1,3 +1,4 @@
+import React from 'react';
 export function isPrintableASCII(input: string) {
   return /^[\x20-\x7E]*$/.test(input);
 }
@@ -22,3 +23,33 @@ export function allowSingleN(ncs: string, isLastChunk: boolean): boolean {
     return true;
   }
 }
+
+export function constructStyledStringElement(str: string, cursorPosition: number, missedPosition: number[]): JSX.Element {
+  const missedPositionDict: { [key: number]: boolean } = {};
+
+  missedPosition.forEach(position => {
+    missedPositionDict[position] = true;
+  });
+
+  let element: JSX.Element[] = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    let cssClass;
+    if (i in missedPositionDict) {
+      cssClass = 'text-danger';
+    } else if (i < cursorPosition) {
+      cssClass = 'text-secondary';
+    } else if (i == cursorPosition) {
+      cssClass = 'text-primary';
+    } else {
+      cssClass = '';
+    }
+
+    element.push(<span key={i} className={cssClass}>{str[i]}</span>);
+  }
+
+  return (
+    <span className='fs-3'>{element}</span>
+  )
+}
+
