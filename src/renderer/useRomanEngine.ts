@@ -161,7 +161,7 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
     }
   });
   // hiraganaCursorPositionを使ってしまうと複数文字まとめてだった場合の最後の文字を打ち終えた瞬間だけ次の文字にもカーソルがあたってしまう
-  const hiraganaCursorPositionArray = isCombinedTwoWordChunk ? [chunkHeaderHiraganaCursorPosition, chunkHeaderCursorPosition + 1] : [hiraganaCursorPosition];
+  const hiraganaCursorPositionArray = isCombinedTwoWordChunk ? [chunkHeaderHiraganaCursorPosition, chunkHeaderHiraganaCursorPosition + 1] : [hiraganaCursorPosition];
   chunkId = inflightChunk.id + 1;
 
 
