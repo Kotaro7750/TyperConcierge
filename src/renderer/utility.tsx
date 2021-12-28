@@ -1,4 +1,50 @@
 import React from 'react';
+import { Vocabulary } from './Vocabulary';
+
+export function constructQueryInformation(roughRomanCount: number): QueryInformation {
+  // ここでのwordはローマ字じゃなくて単語
+  // １単語につき平均5ローマ字だという根拠のない仮定
+  const wordCount = Math.floor(roughRomanCount / 5);
+
+  let viewString = '';
+  let hiraganaString = '';
+  let hiraganaCount = 0;
+  const inViewPositionOfHiraganaString: number[] = [];
+
+  const vocabularyNumber = Vocabulary.length;
+
+  for (let i = 0; i < wordCount; ++i) {
+    const randIndex = Math.floor(Math.random() * (vocabularyNumber));
+    const [wordViewString, wordHiraganaElementList] = Vocabulary[randIndex];
+
+    if (wordViewString.length != wordHiraganaElementList.length) {
+      throw new Error(`${wordViewString} has invalid hiragana`);
+    }
+
+    viewString += wordViewString;
+    for (let elem of wordHiraganaElementList) {
+      hiraganaString += elem;
+      for (let j = 0; j < elem.length; ++j) {
+        inViewPositionOfHiraganaString.push(hiraganaCount);
+      }
+      hiraganaCount++;
+    }
+
+    if (i != wordCount - 1) {
+      viewString += ' ';
+      hiraganaString += ' '
+      inViewPositionOfHiraganaString.push(hiraganaCount);
+      hiraganaCount++;
+    }
+  }
+
+  return {
+    viewString: viewString,
+    hiraganaString: hiraganaString,
+    viewStringPositionOfHiraganaString: inViewPositionOfHiraganaString,
+  }
+}
+
 export function isPrintableASCII(input: string) {
   return /^[\x20-\x7E]*$/.test(input);
 }
@@ -25,9 +71,9 @@ export function allowSingleN(ncs: string, isLastChunk: boolean): boolean {
 }
 
 // カーソル位置が配列になっているのは複数文字からなるチャンクをまとめて入力する場合があるため
-export function constructStyledStringElement(str: string, cursorPosition: number[], missedPosition: number[]): JSX.Element {
+export function constructStyledStringElement(str: string, cursorPosition: number[], missedPosition: number[], enableUnderlinedSpace:boolean): JSX.Element[] {
   const missedPositionDict: { [key: number]: boolean } = {};
-  const cursorPositionDict: { [key:number]: boolean } = {};
+  const cursorPositionDict: { [key: number]: boolean } = {};
 
   missedPosition.forEach(position => {
     missedPositionDict[position] = true;
@@ -53,11 +99,14 @@ export function constructStyledStringElement(str: string, cursorPosition: number
       cssClass = '';
     }
 
-    element.push(<span key={i} className={cssClass}>{str[i]}</span>);
+    // 半角スペースだけだとわかりにくい場合には下線を引く
+    if (enableUnderlinedSpace && str[i] == ' ') {
+      cssClass += ' text-decoration-underline';
+    }
+
+    // 行の最初と最後にスペースがあるときに' 'としてしまうとレンダリングエンジンが消してしまう
+    element.push(<span key={i} className={cssClass}>{str[i] == ' ' ? '\u00A0' : str[i]}</span>);
   }
 
-  return (
-    <span className='fs-3'>{element}</span>
-  )
+  return element;
 }
-

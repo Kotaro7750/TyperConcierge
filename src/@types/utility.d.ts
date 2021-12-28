@@ -72,6 +72,7 @@ interface RomanPaneInformation {
   // ローマ字系列でのカーソル位置・ミス位置
   currentCursorPosition: number,
   missedPosition: number[],
+  lapEndPosition: number[],
 }
 
 interface QuerySentencePaneInformation {

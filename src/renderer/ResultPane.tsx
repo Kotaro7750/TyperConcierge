@@ -10,7 +10,6 @@ function calcStatistics(src: TypingResult): TypingStatistics {
 
   for (let confirmedChunk of src.confirmedChunkList) {
     idealWordCount += confirmedChunk.minCandidateString.length;
-    // XXX inputWordCount += confirmedChunk.romanString.length;
     inputWordCount += reduceCandidate(confirmedChunk.confirmedCandidate.candidate).length;
 
     confirmedChunk.keyStrokeList.forEach(keyStroke => {

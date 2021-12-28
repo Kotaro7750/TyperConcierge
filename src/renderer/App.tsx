@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TypingPane } from './TypingPane';
 import { StartSignal } from './StartSignal';
 import { TimerPane } from './TimerPane';
 import { ResultPane } from './ResultPane';
+
+import { constructQueryInformation } from './utility';
 
 import { useMilliSecondTimer } from './useMilliSecondTimer';
 import { useCountdownTimer } from './useCountdownTimer';
@@ -11,6 +13,8 @@ export function App() {
   const [mode, setMode] = useState<Mode>('Ready');
   const [elapsedTime, startTimer, stopTimer, cancelTimer] = useMilliSecondTimer();
   const [countdownTimer, startCountdownTimer, initCountdownTimer] = useCountdownTimer(3, () => startTyping());
+
+  const queryInformation: QueryInformation = useMemo(() => constructQueryInformation(100), [mode]);
 
   let typingResult = useRef<TypingResult>();
 
@@ -88,16 +92,6 @@ export function App() {
         break;
     }
   }
-
-  const VIEW_STRING = 'きょだい';
-  const TYPED_STRING = 'きょだい';
-  const VIEW_POSITION_HIRAGANA_STRING = [0, 1, 2, 3];
-
-  const queryInformation: QueryInformation = {
-    viewString: VIEW_STRING,
-    hiraganaString: TYPED_STRING,
-    viewStringPositionOfHiraganaString: VIEW_POSITION_HIRAGANA_STRING,
-  };
 
   return (
     <div className='container-fluid'>

@@ -46,6 +46,35 @@ export function inCandidateIndexAtCursorPosition(candidate: string[], cursorPosi
   return index;
 }
 
+export function selectEffectiveRomanChunkLength(minCandidateLength: number, actualCandidateLength: number): number {
+  // TODO 最短なのか実際に打った文字数なのかを変えられるようにする
+  return minCandidateLength;
+}
+
+// チャンク内にラップ区切りがあった場合に表示用ローマ字系列の何番目がラップ末尾なのかを計算する
+// inLapRomanCountは，既に減算したあとのもの
+export function calcInChunkLapEndIndex(effectiveRomanChunkLength: number, inLapRomanCount: number, actualCandidateLength: number): number {
+  let index: number;
+  // 後ろから数えてinLapRomanCount目（0-インデックス）がラップの最後の文字
+  const inChunkIndexOfLapEnd = effectiveRomanChunkLength - inLapRomanCount - 1;
+
+  // チャンクの最初のローマ字が最後だったらそのまま使う
+  // Ex. 「kyo」の「k」が最後だったら，「kilyo」でも「k」がラップの最後
+  if (inChunkIndexOfLapEnd == 0) {
+    index = 0;
+    // チャンクの最後のローマ字が最後だったら最後の文字を使う
+    // Ex. 「kyo」の「o」が最後だったら，「kilyo」では「o」がラップの最後
+  } else if (inChunkIndexOfLapEnd == effectiveRomanChunkLength - 1) {
+    index = actualCandidateLength - 1;
+    // それ以外ならどこでも良い（というか区切りを定められない）
+  } else {
+    // Ex. ここでは，「kyo」の「y」が最後だったら，「kilyo」では「i」がラップの最後としている
+    index = inChunkIndexOfLapEnd;
+  }
+
+  return index;
+}
+
 // Uni,Bi-gramを用いて文章を入力単位に分割する
 // Ex. "ひじょうに big" -> ['ひ','じょ','う','に',' ','b','i','g']
 export function parseSentence(input: string): Chunk[] {

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { deepCopyChunkWithRoman, reduceCandidate, characterAtCursorPosition, inCandidateIndexAtCursorPosition, parseSentence, constructChunkWithRomanList } from './RomanEngineUtility';
+import { deepCopyChunkWithRoman, reduceCandidate, characterAtCursorPosition, inCandidateIndexAtCursorPosition, parseSentence, constructChunkWithRomanList, selectEffectiveRomanChunkLength, calcInChunkLapEndIndex } from './RomanEngineUtility';
 
 // 表示用の情報を構築する
 function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman[], confirmedChunkList: ConfirmedChunk[], inflightChunk: InflightChunkWithRoman): SentenceViewPaneInformation {
@@ -9,12 +9,28 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
   let romanMissedPosition: number[] = [];
   let romanCursorPosition = 0;
 
+  // もし1チャンク内で２つ以上ラップの切れ目があると上手く動かないので設定値に注意
+  // TODO ここはユーザー設定で変えられるようにする？でもそうすると記録の整合性がなくなる
+  const LAP_LENGTH = 50;
+  let inLapRomanCount = 0;
+  let lapEndPosition = [];
+
   let hiraganaMissedPosition: number[] = [];
   let hiraganaCursorPosition = 0;
 
   // 既に確定したチャンクについてはローマ字表現は確定している
   for (let confirmedChunk of confirmedChunkList) {
-    romanString += reduceCandidate(confirmedChunk.confirmedCandidate.candidate);
+    const confirmedCandidateString = reduceCandidate(confirmedChunk.confirmedCandidate.candidate);
+    romanString += confirmedCandidateString;
+
+    // このチャンク内で規定の１ラップローマ字数に達していたら新しいラップにする
+    const effectiveRomanChunkLength = selectEffectiveRomanChunkLength(confirmedChunk.minCandidateString.length, confirmedCandidateString.length);
+
+    inLapRomanCount += effectiveRomanChunkLength;
+    if (inLapRomanCount >= LAP_LENGTH) {
+      inLapRomanCount -= LAP_LENGTH;
+      lapEndPosition.push(romanCursorPosition + calcInChunkLapEndIndex(effectiveRomanChunkLength, inLapRomanCount, confirmedCandidateString.length));
+    }
 
     // チャンク先頭のカーソル位置
     const chunkHeaderCursorPosition = romanCursorPosition;
@@ -67,12 +83,25 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
         romanString: romanString,
         currentCursorPosition: romanCursorPosition,
         missedPosition: romanMissedPosition,
+        lapEndPosition: lapEndPosition,
       }
     };
   }
 
   // 現在入力中のチャンクはローマ字表現候補が限られている
-  romanString += reduceCandidate(inflightChunk.romanCandidateList[0].candidate);
+  const inflightCandidateString = reduceCandidate(inflightChunk.romanCandidateList[0].candidate);
+  romanString += inflightCandidateString;
+
+  // このチャンク内で規定の１ラップローマ字数に達していたら新しいラップにする
+  // ほとんど確定したチャンク列の処理と同じ
+  const effectiveRomanInflightChunkLength = selectEffectiveRomanChunkLength(inflightChunk.minCandidateString.length, inflightCandidateString.length);
+
+  inLapRomanCount += effectiveRomanInflightChunkLength;
+  if (inLapRomanCount >= LAP_LENGTH) {
+    inLapRomanCount -= LAP_LENGTH;
+    lapEndPosition.push(romanCursorPosition + calcInChunkLapEndIndex(effectiveRomanInflightChunkLength, inLapRomanCount, inflightCandidateString.length));
+  }
+
   // 複数文字チャンクでかつまとめて入力する候補の優先順位が高いときには複数文字をハイライトする必要がある
   const isCombinedTwoWordChunk: boolean = inflightChunk.chunkString.length == 2 && inflightChunk.romanCandidateList[0].candidate.length == 1;
 
@@ -116,6 +145,8 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
   const hiraganaCursorPositionArray = isCombinedTwoWordChunk ? [chunkHeaderHiraganaCursorPosition, chunkHeaderCursorPosition + 1] : [hiraganaCursorPosition];
   chunkId = inflightChunk.id + 1;
 
+
+  // カーソル位置以降のチャンク
   let strictNextChunkHeader = inflightChunk.romanCandidateList[0].strictNextChunkHeader;
 
   // 未確定のチャンクでは全ての候補から選択する
@@ -126,21 +157,34 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
     let tmpStrict = chunkWithRoman.romanCandidateList[0].strictNextChunkHeader;
 
     // 前のチャンクから先頭文字が制限されている可能性もある
-    if (strictNextChunkHeader != '' && candidate[0][0] != strictNextChunkHeader) {
+    if (strictNextChunkHeader != '' && characterAtCursorPosition(candidate, 0) != strictNextChunkHeader) {
       for (let romanCandidate of chunkWithRoman.romanCandidateList) {
-        if (romanCandidate.candidate[0][0] == strictNextChunkHeader) {
+        if (characterAtCursorPosition(romanCandidate.candidate, 0) == strictNextChunkHeader) {
           candidate = romanCandidate.candidate;
           tmpStrict = romanCandidate.strictNextChunkHeader;
           break;
         }
       }
 
-      if (candidate[0][0] != strictNextChunkHeader) {
+      if (characterAtCursorPosition(candidate, 0) != strictNextChunkHeader) {
         throw new Error(`${candidate[0]} in ${chunkWithRoman.chunkString} don't start with ${strictNextChunkHeader}`)
       }
     }
 
     strictNextChunkHeader = tmpStrict;
+
+    // このチャンク内で規定の１ラップローマ字数に達していたら新しいラップにする
+    // ほとんど確定したチャンク列の処理と同じ
+    // まだタイプしていないので表示されるローマ字系列をそのまま使う
+    const effectiveRomanChunkLength = reduceCandidate(candidate).length;
+
+    inLapRomanCount += effectiveRomanChunkLength;
+    if (inLapRomanCount >= LAP_LENGTH) {
+      inLapRomanCount -= LAP_LENGTH;
+      // 現在のローマ字数がこのチャンクの先頭インデックス
+      lapEndPosition.push(romanString.length + calcInChunkLapEndIndex(effectiveRomanChunkLength, inLapRomanCount, reduceCandidate(candidate).length));
+    }
+
     romanString += reduceCandidate(candidate);
   }
 
@@ -153,6 +197,7 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
       romanString: romanString,
       currentCursorPosition: romanCursorPosition,
       missedPosition: romanMissedPosition,
+      lapEndPosition: lapEndPosition,
     },
   };
 }
@@ -225,7 +270,6 @@ export function useRomanEngine(initSentence: string): [SentenceViewPaneInformati
         // 確定したチャンクにinflightChunkを追加する
         confirmedChunkList.current.push({
           id: inflightChunk.current.id,
-          // XXX romanString: reduceCandidate(romanCandidate.candidate),
           // TODO これディープコピーしなくていいの？
           confirmedCandidate: romanCandidate,
           minCandidateString: inflightChunk.current.minCandidateString,
