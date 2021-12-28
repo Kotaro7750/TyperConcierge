@@ -13,9 +13,10 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
   // TODO ここはユーザー設定で変えられるようにする？でもそうすると記録の整合性がなくなる
   const LAP_LENGTH = 50;
   let inLapRomanCount = 0;
-  let lapEndPosition = [];
+  const lapEndPosition = [];
+  const lapElapsedTime: number[] = [];
 
-  let hiraganaMissedPosition: number[] = [];
+  const hiraganaMissedPosition: number[] = [];
   let hiraganaCursorPosition = 0;
 
   // 既に確定したチャンクについてはローマ字表現は確定している
@@ -26,28 +27,37 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
     // このチャンク内で規定の１ラップローマ字数に達していたら新しいラップにする
     const effectiveRomanChunkLength = selectEffectiveRomanChunkLength(confirmedChunk.minCandidateString.length, confirmedCandidateString.length);
 
+    let inChunkLapEndIndex = -1;
     inLapRomanCount += effectiveRomanChunkLength;
     if (inLapRomanCount >= LAP_LENGTH) {
       inLapRomanCount -= LAP_LENGTH;
-      lapEndPosition.push(romanCursorPosition + calcInChunkLapEndIndex(effectiveRomanChunkLength, inLapRomanCount, confirmedCandidateString.length));
+      inChunkLapEndIndex = calcInChunkLapEndIndex(effectiveRomanChunkLength, inLapRomanCount, confirmedCandidateString.length);
+      lapEndPosition.push(romanCursorPosition + inChunkLapEndIndex);
     }
 
-    // チャンク先頭のカーソル位置
-    const chunkHeaderCursorPosition = romanCursorPosition;
+    // チャンク先頭のローマ字のカーソル位置
+    const chunkHeaderRomanCursorPosition = romanCursorPosition;
     // 候補ローマ字系列の要素（２文字を個別で入力した場合に２つになる）のそれぞれがミスかどうか
-    let dividedCandidateMissVector: boolean[] = confirmedChunk.confirmedCandidate.candidate.map(_ => false);
+    const dividedCandidateMissVector: boolean[] = confirmedChunk.confirmedCandidate.candidate.map(_ => false);
 
     let isMissed: boolean = false;
-    confirmedChunk.keyStrokeList.forEach(keyStrokeInformation => {
+    confirmedChunk.keyStrokeList.forEach(keyStrokeInfo => {
       // 同じ位置で複数回ミスした時に重複するのを避ける
-      if (keyStrokeInformation.isHit) {
+      if (keyStrokeInfo.isHit) {
+        const inCandidateCursorPosition = romanCursorPosition - chunkHeaderRomanCursorPosition;
+        const inCandidateIndex = inCandidateIndexAtCursorPosition(confirmedChunk.confirmedCandidate.candidate, inCandidateCursorPosition);
+
         if (isMissed) {
-          const inCandidateCursorPosition = romanCursorPosition - chunkHeaderCursorPosition;
-          const inCandidateIndex = inCandidateIndexAtCursorPosition(confirmedChunk.confirmedCandidate.candidate, inCandidateCursorPosition);
           dividedCandidateMissVector[inCandidateIndex] = true;
 
           romanMissedPosition.push(romanCursorPosition);
         }
+
+        // このキーストロークがラップ終了のものだったら時間を記録する
+        if (inChunkLapEndIndex == inCandidateCursorPosition) {
+          lapElapsedTime.push(keyStrokeInfo.elapsedTime);
+        }
+
         isMissed = false;
         romanCursorPosition++;
       } else {
@@ -84,6 +94,7 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
         currentCursorPosition: romanCursorPosition,
         missedPosition: romanMissedPosition,
         lapEndPosition: lapEndPosition,
+        lapElapsedTime: lapElapsedTime,
       }
     };
   }
@@ -96,9 +107,11 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
   // ほとんど確定したチャンク列の処理と同じ
   const effectiveRomanInflightChunkLength = selectEffectiveRomanChunkLength(inflightChunk.minCandidateString.length, inflightCandidateString.length);
 
+  let inChunkLapEndIndex = -1;
   inLapRomanCount += effectiveRomanInflightChunkLength;
   if (inLapRomanCount >= LAP_LENGTH) {
     inLapRomanCount -= LAP_LENGTH;
+    inChunkLapEndIndex = calcInChunkLapEndIndex(effectiveRomanInflightChunkLength, inLapRomanCount, inflightCandidateString.length);
     lapEndPosition.push(romanCursorPosition + calcInChunkLapEndIndex(effectiveRomanInflightChunkLength, inLapRomanCount, inflightCandidateString.length));
   }
 
@@ -123,6 +136,12 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
         // 本当は+2する必要はない（hiraganaCursorPositionをinflightChunkで使う理由は複数文字チャンクを１文字ずつ入力する場合の処理のみ）
         hiraganaCursorPosition += isCombinedTwoWordChunk ? 2 : 1;
       }
+
+      // このキーストロークがラップ終了のものだったら時間を記録する
+      if (inChunkLapEndIndex == inCandidateCursorPosition) {
+        lapElapsedTime.push(keyStrokeInformation.elapsedTime);
+      }
+
 
       romanCursorPosition++;
     } else {
@@ -198,6 +217,7 @@ function constructSentenceViewPaneInformation(chunkWithRomanList: ChunkWithRoman
       currentCursorPosition: romanCursorPosition,
       missedPosition: romanMissedPosition,
       lapEndPosition: lapEndPosition,
+      lapElapsedTime: lapElapsedTime,
     },
   };
 }

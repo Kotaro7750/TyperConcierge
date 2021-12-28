@@ -73,6 +73,7 @@ interface RomanPaneInformation {
   currentCursorPosition: number,
   missedPosition: number[],
   lapEndPosition: number[],
+  lapElapsedTime: number[],
 }
 
 interface QuerySentencePaneInformation {
