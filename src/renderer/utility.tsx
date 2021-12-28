@@ -71,7 +71,7 @@ export function allowSingleN(ncs: string, isLastChunk: boolean): boolean {
 }
 
 // カーソル位置が配列になっているのは複数文字からなるチャンクをまとめて入力する場合があるため
-export function constructStyledStringElement(str: string, cursorPosition: number[], missedPosition: number[], enableUnderlinedSpace:boolean): JSX.Element[] {
+export function constructStyledStringElement(str: string, cursorPosition: number[], missedPosition: number[]): JSX.Element[] {
   const missedPositionDict: { [key: number]: boolean } = {};
   const cursorPositionDict: { [key: number]: boolean } = {};
 
@@ -91,17 +91,19 @@ export function constructStyledStringElement(str: string, cursorPosition: number
     let cssClass;
     if (i in missedPositionDict) {
       cssClass = 'text-danger';
+      // 半角スペースだけだとわかりにくい場合には下線を引く
+      if (str[i] == ' ') {
+        cssClass += ' text-decoration-underline';
+      }
     } else if (i < minCursorPosition) {
       cssClass = 'text-secondary';
     } else if (i in cursorPositionDict) {
       cssClass = 'text-primary';
+      if (str[i] == ' ') {
+        cssClass += ' text-decoration-underline';
+      }
     } else {
       cssClass = '';
-    }
-
-    // 半角スペースだけだとわかりにくい場合には下線を引く
-    if (enableUnderlinedSpace && str[i] == ' ') {
-      cssClass += ' text-decoration-underline';
     }
 
     // 行の最初と最後にスペースがあるときに' 'としてしまうとレンダリングエンジンが消してしまう

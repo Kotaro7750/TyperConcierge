@@ -14,7 +14,7 @@ function LapLine(props: { styledStringElementList: JSX.Element[] }): JSX.Element
 }
 
 export function RomanPane(props: { information: RomanPaneInformation }) {
-  const styledStringElementList = constructStyledStringElement(props.information.romanString, [props.information.currentCursorPosition], props.information.missedPosition, true);
+  const styledStringElementList = constructStyledStringElement(props.information.romanString, [props.information.currentCursorPosition], props.information.missedPosition);
 
   const lapEndPositionDict: { [key: number]: boolean } = {};
   props.information.lapEndPosition.forEach(position => {
