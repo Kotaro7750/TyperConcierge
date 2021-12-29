@@ -13,35 +13,34 @@ type PrintableKeyDownEvent = {
 
 type TypingFinishEvent = TypingResult;
 
-interface Chunk {
-  chunkString: string
+interface ChunkWithoutRoman {
+  chunkStr: string
 };
 
 // チャンクのローマ字表現候補の１つを表す
 // 候補が配列になっているのは，ひらがな２文字以上のときに１文字ずつ入力しても上手く扱えるようにするため（現在打っている文字をハイライトする時などの利用を想定）
 // Ex. 「きょ」というチャンクの候補の１つである「kilyo」に対しては，['ki','lyo']とする
 interface RomanCandidate {
-  candidate: string[],
+  romanElemList: string[],
   // 「っ」を連続する子音などで表現する場合に次のチャンクの先頭が制限するために使う
-  strictNextChunkHeader: string,
+  nextChunkHeadConstraint: string,
 }
 
-interface ChunkWithRoman extends Chunk {
+interface Chunk extends ChunkWithoutRoman {
   // 最も短いローマ字表現の文字列
-  minCandidateString: string,
+  minCandidateStr: string,
   romanCandidateList: RomanCandidate[]
 }
 
 interface ConfirmedChunk {
   id: number,
-  //romanString: string,
   confirmedCandidate: RomanCandidate,
   // このチャンクのローマ字表現の最短となるもの
   minCandidateString: string,
   keyStrokeList: KeyStrokeInformation[],
 }
 
-interface InflightChunkWithRoman extends ChunkWithRoman {
+interface InflightChunk extends Chunk {
   id: number,
   // romanCandidateListのそれぞれに対応するカーソル位置の配列
   cursorPositionList: number[],
@@ -70,9 +69,9 @@ interface QueryInformation {
 interface RomanPaneInformation {
   romanString: string,
   // ローマ字系列でのカーソル位置・ミス位置
-  currentCursorPosition: number,
-  missedPosition: number[],
-  lapEndPosition: number[],
+  cursorPos: number,
+  missedPos: number[],
+  lapEndPos: number[],
   lapElapsedTime: number[],
 }
 

@@ -2,15 +2,15 @@ import React, { useMemo } from 'react';
 import { ResultSummaryPane } from './ResultSummaryPane';
 import { reduceCandidate } from './RomanEngineUtility';
 
-function calcStatistics(src: TypingResult): TypingStatistics {
+function calcStatistics(result: TypingResult): TypingStatistics {
   let idealWordCount = 0;
   let inputWordCount = 0;
   let missCount = 0;
   let elapsedTime = 0;
 
-  for (let confirmedChunk of src.confirmedChunkList) {
+  for (let confirmedChunk of result.confirmedChunkList) {
     idealWordCount += confirmedChunk.minCandidateString.length;
-    inputWordCount += reduceCandidate(confirmedChunk.confirmedCandidate.candidate).length;
+    inputWordCount += reduceCandidate(confirmedChunk.confirmedCandidate.romanElemList).length;
 
     confirmedChunk.keyStrokeList.forEach(keyStroke => {
       elapsedTime = keyStroke.elapsedTime;
@@ -18,21 +18,21 @@ function calcStatistics(src: TypingResult): TypingStatistics {
     });
   }
 
-  let summary: TypingStatisticsSummary = {
-    idealWordCount: idealWordCount,
-    inputWordCount: inputWordCount,
-    missCount: missCount,
-    totalTime: elapsedTime,
-  }
-
   return {
-    summary: summary
+    summary: {
+      idealWordCount: idealWordCount,
+      inputWordCount: inputWordCount,
+      missCount: missCount,
+      totalTime: elapsedTime,
+    }
   }
 }
 
 // | undefinedとしているのは初回には結果はないため
 export function ResultPane(props: { result: TypingResult | undefined }): JSX.Element {
-  const statisticsSummery = useMemo(() => calcStatistics(props.result as TypingResult).summary, [props.result]);
+  const result = props.result;
+
+  const statisticsSummery = useMemo(() => calcStatistics(result as TypingResult).summary, [result]);
 
   return (
     <div className='row'>

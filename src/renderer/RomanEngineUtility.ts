@@ -1,20 +1,20 @@
 import { hiraganaRomanDictionary } from './HiraganaRomanDictionary';
 import { isPrintableASCII, allowSingleN } from './utility';
 
-export function deepCopyChunkWithRoman(src: ChunkWithRoman): ChunkWithRoman {
-  let dst: ChunkWithRoman = {
-    chunkString: src.chunkString,
-    minCandidateString: src.minCandidateString,
+export function deepCopyChunk(src: Chunk): Chunk {
+  const dst: Chunk = {
+    chunkStr: src.chunkStr,
+    minCandidateStr: src.minCandidateStr,
     romanCandidateList: [],
   };
 
   src.romanCandidateList.forEach(romanCandidate => {
-    let candidate: string[] = [];
-    romanCandidate.candidate.forEach(e => candidate.push(e));
+    const romanElemList: string[] = [];
+    romanCandidate.romanElemList.forEach(e => romanElemList.push(e));
 
     dst.romanCandidateList.push({
-      candidate: candidate,
-      strictNextChunkHeader: romanCandidate.strictNextChunkHeader,
+      romanElemList: romanElemList,
+      nextChunkHeadConstraint: romanCandidate.nextChunkHeadConstraint,
     });
   });
 
@@ -23,24 +23,24 @@ export function deepCopyChunkWithRoman(src: ChunkWithRoman): ChunkWithRoman {
 
 // 複数文字に対応した候補を文字列に変換する
 // Ex. ['ki','lyo'] -> 'kilyo'
-export function reduceCandidate(candidate: string[]): string {
-  return candidate.reduce((prev, current) => prev + current);
+export function reduceCandidate(romanElemList: string[]): string {
+  return romanElemList.reduce((prev, current) => prev + current);
 }
 
-export function characterAtCursorPosition(candidate: string[], cursorPosition: number): PrintableASCII {
+export function charInRomanElementAtPosition(romanElemList: string[], position: number): PrintableASCII {
   // TODO あまりキャストしたくないのでそのうちPrintableASCIIでできたstring型を定義する必要があるかもしれない
-  return reduceCandidate(candidate)[cursorPosition] as PrintableASCII;
+  return reduceCandidate(romanElemList)[position] as PrintableASCII;
 }
 
 // ローマ字系列候補の中でcursorPosition目にある文字は配列の何番目に存在するか
 // Ex. ['ki','lyo']という候補のカーソル位置2（l）は，インデックス1番
-export function inCandidateIndexAtCursorPosition(candidate: string[], cursorPosition: number): number {
+export function inCandidateIndexAtPosition(romanElemList: string[], position: number): number {
   let index = 0;
-  let tailPosition = candidate[0].length - 1;
+  let tailPosition = romanElemList[0].length - 1;
 
-  while (tailPosition < cursorPosition) {
+  while (tailPosition < position) {
     index++;
-    tailPosition += candidate[index].length;
+    tailPosition += romanElemList[index].length;
   }
 
   return index;
@@ -53,23 +53,26 @@ export function selectEffectiveRomanChunkLength(minCandidateLength: number, actu
 
 // チャンク内にラップ区切りがあった場合に表示用ローマ字系列の何番目がラップ末尾なのかを計算する
 // inLapRomanCountは，既に減算したあとのもの
-export function calcInChunkLapEndIndex(effectiveRomanChunkLength: number, inLapRomanCount: number, actualCandidateLength: number): number {
+export function calcLapLastIndexOfChunk(effectiveRomanChunkLength: number, inLapRomanCount: number, actualCandidateLen: number): number {
   let index: number;
+
   // 後ろから数えてinLapRomanCount目（0-インデックス）がラップの最後の文字
-  const inChunkIndexOfLapEnd = effectiveRomanChunkLength - inLapRomanCount - 1;
+  const inChunkIndexOfLapLast = effectiveRomanChunkLength - inLapRomanCount - 1;
 
   // チャンクの最初のローマ字が最後だったらそのまま使う
   // Ex. 「kyo」の「k」が最後だったら，「kilyo」でも「k」がラップの最後
-  if (inChunkIndexOfLapEnd == 0) {
+  if (inChunkIndexOfLapLast == 0) {
     index = 0;
+
     // チャンクの最後のローマ字が最後だったら最後の文字を使う
     // Ex. 「kyo」の「o」が最後だったら，「kilyo」では「o」がラップの最後
-  } else if (inChunkIndexOfLapEnd == effectiveRomanChunkLength - 1) {
-    index = actualCandidateLength - 1;
+  } else if (inChunkIndexOfLapLast == effectiveRomanChunkLength - 1) {
+    index = actualCandidateLen - 1;
+
     // それ以外ならどこでも良い（というか区切りを定められない）
   } else {
-    // Ex. ここでは，「kyo」の「y」が最後だったら，「kilyo」では「i」がラップの最後としている
-    index = inChunkIndexOfLapEnd;
+    // Ex. ここでは「kyo」の「y」がラップ末だったら，表示用文字列「kilyo」では「i」がラップの最後となる
+    index = inChunkIndexOfLapLast;
   }
 
   return index;
@@ -77,24 +80,25 @@ export function calcInChunkLapEndIndex(effectiveRomanChunkLength: number, inLapR
 
 // Uni,Bi-gramを用いて文章を入力単位に分割する
 // Ex. "ひじょうに big" -> ['ひ','じょ','う','に',' ','b','i','g']
-export function parseSentence(input: string): Chunk[] {
-  let parsedSentence: Chunk[] = [];
-  let i: number = 0;
+export function parseSentence(input: string): ChunkWithoutRoman[] {
+  let chunkWithoutRomanList: ChunkWithoutRoman[] = [];
 
+  let i: number = 0;
   while (i < input.length) {
     const uni: string = input.substring(i, i + 1);
     const bi: string = i !== input.length - 1 ? input.substring(i, i + 2) : '';
 
-    let chunkString: string;
+    let chunkStr: string;
     // 表示可能なASCII文字ならそのままパース結果とする
     if (isPrintableASCII(uni)) {
-      chunkString = uni;
+      chunkStr = uni;
       i++;
 
+      // ひらがななら複数文字チャンクの可能性がある
     } else {
       // biがあるならそちらを優先
       if (bi in hiraganaRomanDictionary) {
-        chunkString = bi;
+        chunkStr = bi;
         i = i + 2;
 
       } else {
@@ -102,58 +106,61 @@ export function parseSentence(input: string): Chunk[] {
         if (!(uni in hiraganaRomanDictionary)) {
           throw new Error(`${uni} is not in dictionary`);
         }
-        chunkString = uni;
+
+        chunkStr = uni;
         i++;
       }
     }
 
-    parsedSentence.push({ chunkString: chunkString });
+    chunkWithoutRomanList.push({ chunkStr: chunkStr });
   }
 
-  return parsedSentence;
+  return chunkWithoutRomanList;
 }
 
 // ローマ字出力できる単位に分けられたひらがなチャンク（ASCII文字も含む）にローマ字表現を追加する
-export function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[] {
-  let chunkWithRomanList: ChunkWithRoman[] = new Array<ChunkWithRoman>(chunkList.length);
+export function constructChunkList(chunkWithoutRomanList: ChunkWithoutRoman[]): Chunk[] {
+  const chunkWithoutRomanListLen: number = chunkWithoutRomanList.length;
+
+  const chunkList: Chunk[] = new Array<Chunk>(chunkWithoutRomanListLen);
 
   // 「ん」など次のチャンクによっては使えないローマ字系列があるチャンクに対処するために先読みをする
-  let nextChunkString: string = '';
+  let nextChunkStr: string = '';
+
   // 「っ」を処理するために次のチャンク先頭にある子音などのリストを保持しておく
   // 子音などとしているのは，な行・にゃ行・「ん」の「n」も含むため
   let nextChunkCanLtuByRepeatList: string[] = [];
 
   // 後ろから走査していくことで次のチャンクに依存する処理の実装が楽になる
-  for (let i = chunkList.length - 1; i >= 0; i--) {
-    const chunk: Chunk = chunkList[i];
-    const chunkString: string = chunk.chunkString;
+  for (let i = chunkWithoutRomanListLen - 1; i >= 0; i--) {
+    const chunkWithoutRoman: ChunkWithoutRoman = chunkWithoutRomanList[i];
+
+    const chunkStr: string = chunkWithoutRoman.chunkStr;
     let isASCII = false;
 
-    // このチャンクのローマ字系列のリスト
-    // ２次元配列になっているのは，２文字のひらがなのそれぞれの文字の区切れも表現するため
-    let romanCandidateList: RomanCandidate[] = [];
+    // このチャンクのローマ字系列候補のリスト
+    const romanCandidateList: RomanCandidate[] = [];
 
     // ASCIIならそのまま
-    if (chunkString.length == 1 && isPrintableASCII(chunkString)) {
-      romanCandidateList.push({ candidate: [chunkString], strictNextChunkHeader: '' });
+    if (chunkStr.length == 1 && isPrintableASCII(chunkStr)) {
+      romanCandidateList.push({ romanElemList: [chunkStr], nextChunkHeadConstraint: '' });
       isASCII = true;
 
-    } else if (chunkString == 'ん') {
-      const nRomanStringList = hiraganaRomanDictionary[chunkString];
+    } else if (chunkStr == 'ん') {
+      const nRomanElementList = hiraganaRomanDictionary[chunkStr];
 
-      let tmpList: string[] = [];
-      for (let str of nRomanStringList) {
+      let availableRomanElementList: string[] = [];
+      availableRomanElementList = nRomanElementList.filter(romanElem => {
+        const isLastChunk = i == chunkWithoutRomanListLen - 1;
+
         // 単語・チャンク末だったり後ろに母音，あ行，な行，や行が続く「ん」は「n」と入力できない
-        if (str == 'n' && !allowSingleN(nextChunkString, i == chunkList.length - 1)) {
-          continue;
-        }
-        tmpList.push(str);
-      }
+        return romanElem != 'n' || allowSingleN(nextChunkStr, isLastChunk);
+      });
 
-      tmpList.forEach(e => {
+      availableRomanElementList.forEach(e => {
         romanCandidateList.push({
-          candidate: [e],
-          strictNextChunkHeader: ''
+          romanElemList: [e],
+          nextChunkHeadConstraint: ''
         });
       });
 
@@ -162,63 +169,64 @@ export function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[
       // これを表そうとすると「った」を辞書に登録するという方法があるがこうすると辞書のサイズが膨大になる
       // 「あ」，「い」，「え」，「お」（「っう」は「wwu」「wwhu」などにできる），な行，にゃ行
       // 「っん」は「xxn」とできる
-    } else if (chunkString == 'っ') {
+    } else if (chunkStr == 'っ') {
       // 「ltu」「ltsu」「xtu」に関しては次のチャンクの文字に制限はない
-      hiraganaRomanDictionary[chunkString].forEach(e => {
+      hiraganaRomanDictionary[chunkStr].forEach(e => {
         romanCandidateList.push({
-          candidate: [e],
-          strictNextChunkHeader: ''
+          romanElemList: [e],
+          nextChunkHeadConstraint: ''
         });
       });
 
       // 子音などの連続で済ませるなら次のチャンクの先頭は制限する必要がある
       nextChunkCanLtuByRepeatList.forEach(e => {
         romanCandidateList.push({
-          candidate: [e],
-          strictNextChunkHeader: e
+          romanElemList: [e],
+          nextChunkHeadConstraint: e
         });
       });
 
       // ２文字の場合にはまとめて入力した場合と１文字ずつ入力した場合のローマ字系列がある
-    } else if (chunkString.length == 2) {
-      if (!(chunkString in hiraganaRomanDictionary)) {
-        throw new Error(`${chunkString} is not in dictionary`);
+    } else if (chunkStr.length == 2) {
+      if (!(chunkStr in hiraganaRomanDictionary)) {
+        throw new Error(`${chunkStr} is not in dictionary`);
       }
 
       // まずは２文字をまとめて入力できるローマ字系列をpushする
-      hiraganaRomanDictionary[chunkString].forEach(e => {
+      hiraganaRomanDictionary[chunkStr].forEach(e => {
         romanCandidateList.push({
-          candidate: [e],
-          strictNextChunkHeader: ''
+          romanElemList: [e],
+          nextChunkHeadConstraint: ''
         });
       });
 
-      const chunkStringFirst: string = chunkString[0];
-      const chunkStringSecond: string = chunkString[1];
+      const chunkStrFirst: string = chunkStr[0];
+      const chunkStrSecond: string = chunkStr[1];
 
       // 単独で入力できないものはないはず
-      if (!(chunkStringFirst in hiraganaRomanDictionary) || !(chunkStringSecond in hiraganaRomanDictionary)) {
-        throw new Error(`${chunkStringFirst} is not in dictionary`);
+      if (!(chunkStrFirst in hiraganaRomanDictionary) || !(chunkStrSecond in hiraganaRomanDictionary)) {
+        throw new Error(`${chunkStrFirst} is not in dictionary`);
       }
 
       // １文字ずつ単独で入力したものを組み合わせてpushする
-      for (let first of hiraganaRomanDictionary[chunkStringFirst]) {
-        for (let second of hiraganaRomanDictionary[chunkStringSecond]) {
+      for (let first of hiraganaRomanDictionary[chunkStrFirst]) {
+        for (let second of hiraganaRomanDictionary[chunkStrSecond]) {
           romanCandidateList.push({
-            candidate: [first, second],
-            strictNextChunkHeader: ''
+            romanElemList: [first, second],
+            nextChunkHeadConstraint: ''
           });
         }
       }
+
     } else {
-      if (!(chunkString in hiraganaRomanDictionary)) {
-        throw new Error(`${chunkString} is not in dictionary`);
+      if (!(chunkStr in hiraganaRomanDictionary)) {
+        throw new Error(`${chunkStr} is not in dictionary`);
       }
 
-      hiraganaRomanDictionary[chunkString].forEach(e => {
+      hiraganaRomanDictionary[chunkStr].forEach(e => {
         romanCandidateList.push({
-          candidate: [e],
-          strictNextChunkHeader: ''
+          romanElemList: [e],
+          nextChunkHeadConstraint: ''
         });
       });
     }
@@ -226,26 +234,29 @@ export function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[
     // ひとまずは文字数の少ない候補を第一候補として選択する
     // TODO 文字数が最小の候補が複数ある場合に関しては設定で選べるようにする
     romanCandidateList.sort((a: RomanCandidate, b: RomanCandidate) => {
-      return reduceCandidate(a.candidate).length - reduceCandidate(b.candidate).length;
+      return reduceCandidate(a.romanElemList).length - reduceCandidate(b.romanElemList).length;
     });
 
-    chunkWithRomanList[i] = {
-      chunkString: chunkString,
+    chunkList[i] = {
+      chunkStr: chunkStr,
       // 最短の候補を選んでいけば文章全体でも最短になるはず（候補のソートは安定ソートだと思う）
       // もし安定ソートじゃないと，「っち」が「cti」とするのが最短みたいになってしまうかもしれない（[['t'],['c'],['ltu']...]と['ti','chi']にはなってるけどtとcが逆転してしまう）
-      minCandidateString: reduceCandidate(romanCandidateList[0].candidate),
+      minCandidateStr: reduceCandidate(romanCandidateList[0].romanElemList),
       romanCandidateList: romanCandidateList,
     };
-    nextChunkString = chunkString;
 
+    nextChunkStr = chunkStr;
+
+    // 次に処理するチャンク（後ろから処理しているので１つ前のチャンク）が「っ」だった場合に備えて子音などのリストを構築する
     nextChunkCanLtuByRepeatList = [];
     // 次のチャンクがASCIIだったら促音を子音などの連続で表すことはできない
     if (!isASCII) {
       // 同じ子音などが連続するのを防ぐ
-      let isDuplicate: { [key: string]: boolean } = {};
+      const isDuplicate: { [key: string]: boolean } = {};
 
       romanCandidateList.forEach(romanCandidate => {
-        const head = characterAtCursorPosition(romanCandidate.candidate, 0);
+        const head = charInRomanElementAtPosition(romanCandidate.romanElemList, 0);
+
         // 次のチャンクの先頭が「n」を除く子音の可能性がある場合に促音を子音などの連続で表せる
         if (head != 'a' && head != 'i' && head != 'u' && head != 'e' && head != 'o' && head != 'n') {
           if (!(head in isDuplicate)) {
@@ -257,5 +268,5 @@ export function constructChunkWithRomanList(chunkList: Chunk[]): ChunkWithRoman[
     }
   }
 
-  return chunkWithRomanList;
+  return chunkList;
 }
