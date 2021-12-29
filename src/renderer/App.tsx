@@ -96,13 +96,13 @@ export function App() {
   return (
     <div className='container-fluid'>
       <div className='row'>
-        <div className='col-4'>
+        <div className='col-3'>
           <StartSignal countdownTimer={countdownTimer} />
         </div>
-        <div className='col-3 offset-1'>
+        <div className='col-2'>
           <button onClick={onClicked} className='btn btn-lg btn-outline-secondary'>{mode}</button>
         </div>
-        <div className='col-3 offset-1'>
+        <div className='col-3 offset-4'>
           <TimerPane elapsedTime={elapsedTime / 1000} />
         </div>
       </div>
