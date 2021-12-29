@@ -51,7 +51,7 @@ export const hiraganaRomanDictionary: { [hiragana: string]: ReadonlyArray<string
   'さ'  : ['sa'],
   'し'  : ['si','ci','shi'],
   'す'  : ['su'],
-  'せ'  : ['se  ','ce'],
+  'せ'  : ['se','ce'],
   'そ'  : ['so'],
   'しゃ': ['sya','sha'],
   'しぃ': ['syi'],
