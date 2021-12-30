@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
+import { TimerPane } from './TimerPane';
 import { RomanPane } from './RomanPane';
 import { QueryPane } from './QueryPane';
 
 import { useRomanEngine } from './useRomanEngine';
 
-export function TypingPane(props: { queryInformation: QueryInformation }) {
+export function TypingView(props: { queryInformation: QueryInformation, elapsedTime: number }) {
   const [sentenceViewPaneInformation, handleInput] = useRomanEngine(props.queryInformation.hiraganaString);
 
   useEffect(() => {
@@ -21,6 +22,12 @@ export function TypingPane(props: { queryInformation: QueryInformation }) {
 
   return (
     <>
+      <div className='row'>
+        <div className='col-3 offset-9'>
+          <TimerPane elapsedTime={props.elapsedTime} />
+        </div>
+      </div>
+
       <div className='row my-3 mx-0'>
         <div className='col-12'>
           <QueryPane input={props.queryInformation} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />

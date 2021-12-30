@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { TypingPane } from './TypingPane';
-import { StartSignal } from './StartSignal';
-import { TimerPane } from './TimerPane';
-import { ResultPane } from './ResultPane';
+import { TypingView } from './TypingView';
+import { ResultView } from './ResultView';
+import { ReadyView } from './ReadyView';
 
 import { constructQueryInformation } from './utility';
 
@@ -82,38 +81,14 @@ export function App() {
     initCountdownTimer();
   }
 
-  function onClicked() {
-    switch (mode) {
-      case 'Ready':
-        startGame();
-        break;
-      case 'Started':
-        cancelTyping();
-        break;
-    }
-  }
 
   return (
     <div className='container-fluid'>
-      <div className='row my-3 mx-0'>
-        <div className='col-3'>
-          <StartSignal countdownTimer={countdownTimer} />
-        </div>
-        <div className='col-2'>
-          <button onClick={onClicked} className='btn btn-lg btn-outline-secondary'>{mode}</button>
-        </div>
-        <div className='col-3 offset-4'>
-          <TimerPane elapsedTime={elapsedTime / 1000} />
-        </div>
-      </div>
-
-      <div className='row'>
-        {
-          mode === 'Started' ? <div className='col-12'><TypingPane queryInformation={queryInformation} /></div>
-            : mode === 'Finished' ? <div className='col-12'><ResultPane result={typingResult.current} /></div>
-              : undefined
-        }
-      </div>
+      {
+        mode === 'Ready' ? <ReadyView countdownTimer={countdownTimer} startCountdown={startCountdownTimer} />
+          : mode === 'Started' ? <TypingView queryInformation={queryInformation} elapsedTime={elapsedTime} />
+            : <ResultView result={typingResult.current} />
+      }
     </div>
   );
 }

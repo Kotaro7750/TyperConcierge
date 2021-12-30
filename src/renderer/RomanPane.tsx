@@ -40,18 +40,18 @@ export function RomanPane(props: { information: RomanPaneInformation }) {
       const lapTimeMilliSecond = lapIndex > romanPaneInfo.lapElapsedTime.length - 1 ? 0 : romanPaneInfo.lapElapsedTime[lapIndex] - previousLapEndElapsedTime;
 
       previousLapEndElapsedTime = romanPaneInfo.lapElapsedTime[lapIndex];
-      lapLineList.push(<div className='col-12'><LapLine key={lapIndex} styledStringElementList={inLapLineElement} lapTimeMilliSecond={lapTimeMilliSecond} /></div>);
+      lapLineList.push(<div className='col-12' key={lapIndex}><LapLine styledStringElementList={inLapLineElement} lapTimeMilliSecond={lapTimeMilliSecond} /></div>);
 
       inLapLineElement = [];
     }
   });
 
   if (inLapLineElement.length != 0) {
-    lapLineList.push(<div className='col-12'><LapLine key={lapLineList.length} styledStringElementList={inLapLineElement} lapTimeMilliSecond={0} /></div>);
+    lapLineList.push(<div className='col-12' key={lapLineList.length}><LapLine styledStringElementList={inLapLineElement} lapTimeMilliSecond={0} /></div>);
   }
 
   return (
-    <div className='row border border-4'>
+    <div className='row border border-secondary border-3 rounded-3'>
       {lapLineList}
     </div>
   );

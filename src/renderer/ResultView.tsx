@@ -29,7 +29,7 @@ function calcStatistics(result: TypingResult): TypingStatistics {
 }
 
 // | undefinedとしているのは初回には結果はないため
-export function ResultPane(props: { result: TypingResult | undefined }): JSX.Element {
+export function ResultView(props: { result: TypingResult | undefined }): JSX.Element {
   const result = props.result;
 
   const statisticsSummery = useMemo(() => calcStatistics(result as TypingResult).summary, [result]);

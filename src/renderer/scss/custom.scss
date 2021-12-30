@@ -1,7 +1,16 @@
+// フォント
 @font-face {
   font-family: "TyperConciergeFont";
   src: url("./TyperConciergeFont-Regular.woff") format("woff");
 }
 $font-family-base: "TyperConciergeFont";
 $font-size-base: 1rem;
+
+// カラーパレット
+$blue: #5863f8;
+$red: #dd5040;
+$green: #4a7c59;
+
+$gray-600: #cedef3;
+$gray-900: #0f2540;
 @import '../../../node_modules/bootstrap/scss/bootstrap';
