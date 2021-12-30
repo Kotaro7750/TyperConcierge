@@ -18,7 +18,10 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     webPreferences: {
       preload: path.resolve(__dirname, 'preload.js'),
+      defaultFontSize: 16,
     },
+    minHeight: 675,
+    minWidth: 900,
   });
 
   if (isDev) {

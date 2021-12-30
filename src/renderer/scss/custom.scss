@@ -1,0 +1,7 @@
+@font-face {
+  font-family: "TyperConciergeFont";
+  src: url("./TyperConciergeFont-Regular.woff") format("woff");
+}
+$font-family-base: "TyperConciergeFont";
+$font-size-base: 1rem;
+@import '../../../node_modules/bootstrap/scss/bootstrap';

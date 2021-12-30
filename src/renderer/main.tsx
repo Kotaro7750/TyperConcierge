@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
+//import 'bootstrap/dist/css/bootstrap.min.css';
+import './scss/custom.scss';
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-import 'bootstrap';
 import { Tooltip } from 'bootstrap';
 
 // ツールチップの初期化
