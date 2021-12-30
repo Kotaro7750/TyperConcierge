@@ -35,7 +35,7 @@ export function ResultPane(props: { result: TypingResult | undefined }): JSX.Ele
   const statisticsSummery = useMemo(() => calcStatistics(result as TypingResult).summary, [result]);
 
   return (
-    <div className='row'>
+    <div className='row my-3 mx-0'>
       <div className='col-12 border border-4'>
         <ResultSummaryPane summary={statisticsSummery} />
       </div>

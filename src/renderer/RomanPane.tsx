@@ -6,13 +6,13 @@ function LapLine(props: { styledStringElementList: JSX.Element[], lapTimeMilliSe
 
   // FIXME 画面を小さくすると折り返されて表示が変になる
   return (
-    <div className='row'>
+    <div className='row me-0 my-1'>
       <div className='col-11'>
         <span className='fs-3'>
           {props.styledStringElementList}
         </span>
       </div>
-      <div className='col-1 border border-2'>
+      <div className='col-1 border border-2 text-end'>
         {lapTimeString}
       </div>
     </div>
@@ -40,21 +40,19 @@ export function RomanPane(props: { information: RomanPaneInformation }) {
       const lapTimeMilliSecond = lapIndex > romanPaneInfo.lapElapsedTime.length - 1 ? 0 : romanPaneInfo.lapElapsedTime[lapIndex] - previousLapEndElapsedTime;
 
       previousLapEndElapsedTime = romanPaneInfo.lapElapsedTime[lapIndex];
-      lapLineList.push(<LapLine key={lapIndex} styledStringElementList={inLapLineElement} lapTimeMilliSecond={lapTimeMilliSecond} />);
+      lapLineList.push(<div className='col-12'><LapLine key={lapIndex} styledStringElementList={inLapLineElement} lapTimeMilliSecond={lapTimeMilliSecond} /></div>);
 
       inLapLineElement = [];
     }
   });
 
   if (inLapLineElement.length != 0) {
-    lapLineList.push(<LapLine key={lapLineList.length} styledStringElementList={inLapLineElement} lapTimeMilliSecond={0} />);
+    lapLineList.push(<div className='col-12'><LapLine key={lapLineList.length} styledStringElementList={inLapLineElement} lapTimeMilliSecond={0} /></div>);
   }
 
   return (
-    <div className='row'>
-      <div className='col-12 border border-4'>
-        {lapLineList}
-      </div>
+    <div className='row border border-4'>
+      {lapLineList}
     </div>
   );
 }

@@ -95,7 +95,7 @@ export function App() {
 
   return (
     <div className='container-fluid'>
-      <div className='row'>
+      <div className='row my-3 mx-0'>
         <div className='col-3'>
           <StartSignal countdownTimer={countdownTimer} />
         </div>
