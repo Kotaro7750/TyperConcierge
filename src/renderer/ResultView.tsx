@@ -36,7 +36,7 @@ export function ResultView(props: { result: TypingResult | undefined }): JSX.Ele
 
   return (
     <div className='row my-3 mx-0'>
-      <div className='col-12 border border-4'>
+      <div className='col-12 border border-secondary border-3 rounded-3 bg-white'>
         <ResultSummaryPane summary={statisticsSummery} />
       </div>
     </div>

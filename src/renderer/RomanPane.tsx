@@ -12,7 +12,7 @@ function LapLine(props: { styledStringElementList: JSX.Element[], lapTimeMilliSe
           {props.styledStringElementList}
         </span>
       </div>
-      <div className='col-1 border border-2 text-end'>
+      <div className='col-1 border border-secondary border-2 rounded-3 text-end bg-white'>
         {lapTimeString}
       </div>
     </div>
@@ -51,7 +51,7 @@ export function RomanPane(props: { information: RomanPaneInformation }) {
   }
 
   return (
-    <div className='row border border-secondary border-3 rounded-3'>
+    <div className='row border border-secondary border-3 rounded-3 bg-white'>
       {lapLineList}
     </div>
   );
