@@ -51,7 +51,7 @@ export function RomanPane(props: { information: RomanPaneInformation }) {
   }
 
   return (
-    <div className='row border border-secondary border-3 rounded-3 bg-white'>
+    <div className='row border border-secondary border-3 rounded-3 bg-white vh-40'>
       {lapLineList}
     </div>
   );

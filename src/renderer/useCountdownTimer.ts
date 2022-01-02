@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function useCountdownTimer(initialCount: number, callback: () => void): [number, () => void, () => void] {
+export function useCountdownTimer(initialCount: number, callback: () => void): [boolean, number, () => void, () => void] {
   type TimerState = 'Ready' | 'Started' | 'Stopped';
 
   const [timerState, setTimerState] = useState<TimerState>('Ready');
@@ -36,5 +36,5 @@ export function useCountdownTimer(initialCount: number, callback: () => void): [
     setCount(initialCount);
   }
 
-  return [count, startCountdown, initCountdown];
+  return [timerState === 'Started', count, startCountdown, initCountdown];
 }

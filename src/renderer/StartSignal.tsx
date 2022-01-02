@@ -1,38 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export function StartSignal(props: { countdownTimer: number }): JSX.Element {
-  const circleCSSProperty: React.CSSProperties = {
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-  };
+  const countdownTimerInt = Math.ceil(props.countdownTimer);
+  const [initialCount] = useState(props.countdownTimer);
 
-  const redCircleCSSProperty: React.CSSProperties = {
-    ...circleCSSProperty,
-    backgroundColor: '#dc3545',
-  }
-
-  const whiteCircleCSSProperty: React.CSSProperties = {
-    ...circleCSSProperty,
-    backgroundColor: 'white',
-  }
-
-  const SIGNAL_COUNT = 3;
-  let circles: JSX.Element[] = [];
-  for (let i = 0; i < SIGNAL_COUNT; ++i) {
-    let style: React.CSSProperties;
-    if (i < SIGNAL_COUNT - props.countdownTimer) {
-      style = whiteCircleCSSProperty;
-    } else {
-      style = redCircleCSSProperty;
-    }
-
-    circles.push(<div key={i} style={style} className='d-inline-block'><span></span></div>);
-  }
+  // 少し汚いがCSSのプロパティを動的に設定することでアニメーションを実現する
+  const r = '20%';
+  const circumference = `calc(2 * ${Math.PI.toString()} * ${r})`;
+  // 円周の経過時間/設定時間だけオフセットする(空白になる)
+  // -1をかけているのは空白の回る方向を右回りにするため
+  const strokeDashOffset = `calc(-1 * calc(${circumference} - ${props.countdownTimer} * (${circumference} / ${initialCount})))`;
 
   return (
-    <div className='row'>
-      {circles}
+    <div className='h-100 w-100 d-flex justify-content-center'>
+
+      {/* positionがabsoluteなのでレイアウトから外れる */}
+      <div className='timer-time position-absolute start-50 top-50 translate-middle'>
+        <span className='fs-1 text-primary'>
+          {countdownTimerInt}
+        </span>
+      </div>
+
+      <svg className='svg-squre' xmlns='http://www.w3.org/2000/svg'>
+        <g>
+          <circle className='timer-circle' r={r} strokeDasharray={circumference} strokeDashoffset={strokeDashOffset} />
+        </g>
+      </svg>
     </div>
   );
 }

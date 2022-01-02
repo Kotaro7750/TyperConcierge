@@ -28,13 +28,13 @@ export function TypingView(props: { queryInformation: QueryInformation, elapsedT
         </div>
       </div>
 
-      <div className='row my-3 mx-0'>
+      <div className='row mt-3 mx-0'>
         <div className='col-12'>
           <QueryPane input={props.queryInformation} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />
         </div>
       </div>
 
-      <div className='row my-5 mx-0'>
+      <div className='row mt-3 mx-0'>
         <div className='col-12'>
           <RomanPane information={sentenceViewPaneInformation.romanPaneInformation} />
         </div>

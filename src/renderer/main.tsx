@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 //import 'bootstrap/dist/css/bootstrap.min.css';
-import './scss/custom.scss';
+import './scss/bootstrap-custom.scss';
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
 import { Tooltip } from 'bootstrap';

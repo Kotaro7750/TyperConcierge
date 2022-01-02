@@ -11,7 +11,7 @@ import { useCountdownTimer } from './useCountdownTimer';
 export function App() {
   const [mode, setMode] = useState<Mode>('Ready');
   const [elapsedTime, startTimer, stopTimer, cancelTimer] = useMilliSecondTimer();
-  const [countdownTimer, startCountdownTimer, initCountdownTimer] = useCountdownTimer(3, () => startTyping());
+  const [isCountdownStarted, countdownTimer, startCountdownTimer, initCountdownTimer] = useCountdownTimer(3, () => startTyping());
 
   const queryInformation: QueryInformation = useMemo(() => constructQueryInformation(100), [mode]);
 
@@ -85,7 +85,7 @@ export function App() {
   return (
     <div className='container-fluid'>
       {
-        mode === 'Ready' ? <ReadyView countdownTimer={countdownTimer} startCountdown={startCountdownTimer} />
+        mode === 'Ready' ? <ReadyView isCountdownStarted={isCountdownStarted} countdownTimer={countdownTimer} startCountdown={startCountdownTimer} />
           : mode === 'Started' ? <TypingView queryInformation={queryInformation} elapsedTime={elapsedTime} />
             : <ResultView result={typingResult.current} />
       }

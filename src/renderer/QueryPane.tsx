@@ -10,7 +10,7 @@ export function QueryPane(props: { input: QueryInformation, information: QuerySe
 
   return (
     <div className='row'>
-      <div className='col-12 border border-secondary border-3 rounded-3 fs-3 bg-white'>
+      <div className='col-12 border border-secondary border-3 rounded-3 fs-3 bg-white vh-30'>
         {constructStyledStringElement(queryInformation.viewString, viewStringCursorPosition, viewStringMissedPosition)}
       </div>
     </div>
