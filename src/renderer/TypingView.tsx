@@ -1,30 +1,76 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { TimerPane } from './TimerPane';
 import { RomanPane } from './RomanPane';
 import { QueryPane } from './QueryPane';
 
-import { useRomanEngine } from './useRomanEngine';
+import { GameStateContext } from './App';
+import { TypingResultContext } from './App';
 
-export function TypingView(props: { queryInformation: QueryInformation, elapsedTime: number }) {
+import { useRomanEngine } from './useRomanEngine';
+import { useMilliSecondTimer } from './useMilliSecondTimer';
+
+export function TypingView(props: { queryInformation: QueryInformation }) {
   const [sentenceViewPaneInformation, handleInput] = useRomanEngine(props.queryInformation.hiraganaString);
+  const [elapsedTime, startTimer, stopTimer, cancelTimer] = useMilliSecondTimer();
+
+  const gameStateContext = useContext(GameStateContext);
+  const typingResultContext = useContext(TypingResultContext);
+
+  const cancelTyping = () => {
+    // これもuseEffect内でやる必要があるかもしれない
+    gameStateContext.setGameState('ModeSelect');
+    cancelTimer();
+  }
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const key = e.key;
+
+    if (key === 'Escape') {
+      cancelTyping();
+      return;
+    }
+
+    // ShiftとかAltとかの特殊文字を防ぐために長さでバリデーションをかける
+    // 本当はもっといいやり方があるはず
+    if (key.length == 1 && ' '.charCodeAt(0) <= key.charCodeAt(0) && key.charCodeAt(0) <= '~'.charCodeAt(0)) {
+      handleInput(key as PrintableASCII, elapsedTime);
+    }
+  }
+
+  const onTypingFinish = (e: CustomEventInit<TypingFinishEvent>) => {
+    stopTimer();
+
+    if (e.detail == undefined) {
+      throw new Error('TypingFinishEvent should not be undefined');
+    }
+
+    typingResultContext.setTypingResult(e.detail);
+    gameStateContext.setGameState('Finished');
+  }
+
+
+  // 初回レンダリング終了時にタイマーをスタートさせる
+  useEffect(() => {
+    startTimer();
+  }, []);
 
   useEffect(() => {
-    let func = (e: CustomEventInit<PrintableKeyDownEvent>) => {
-      if (e.detail !== undefined) {
-        handleInput(e.detail.key, e.detail.elapsedTime);
-      }
-    };
+    addEventListener('keydown', handleKeyDown);
 
-    addEventListener('printableKeydown', func);
+    return () => { removeEventListener('keydown', handleKeyDown) }
+  });
 
-    return () => { removeEventListener('printableKeydown', func) }
+  useEffect(() => {
+    addEventListener('typingFinish', onTypingFinish);
+
+    return () => { removeEventListener('typingFinish', onTypingFinish) }
   });
 
   return (
     <>
       <div className='row'>
         <div className='col-3 offset-9'>
-          <TimerPane elapsedTime={props.elapsedTime} />
+          <TimerPane elapsedTime={elapsedTime} />
         </div>
       </div>
 

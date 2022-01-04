@@ -1,5 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useContext } from 'react';
 import { ResultSummaryPane } from './ResultSummaryPane';
+
+import { GameStateContext } from './App';
+
 import { reduceCandidate } from './RomanEngineUtility';
 
 function calcStatistics(result: TypingResult): TypingStatistics {
@@ -33,6 +36,23 @@ export function ResultView(props: { result: TypingResult | undefined }): JSX.Ele
   const result = props.result;
 
   const statisticsSummery = useMemo(() => calcStatistics(result as TypingResult).summary, [result]);
+
+  const gameStateContext = useContext(GameStateContext);
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const key = e.key;
+
+    if (key === 'Escape') {
+      gameStateContext.setGameState('ModeSelect');
+      return;
+    }
+  }
+
+  useEffect(() => {
+    addEventListener('keydown', handleKeyDown);
+
+    return () => { removeEventListener('keydown', handleKeyDown) }
+  });
 
   return (
     <div className='row my-3 mx-0'>

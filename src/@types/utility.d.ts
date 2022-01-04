@@ -5,6 +5,13 @@ interface Window {
   }
 }
 
+type GameState = 'ModeSelect' | 'Started' | 'Finished';
+
+interface GameStateContext {
+  gameState: GameState,
+  setGameState: React.Dispatch<React.SetStateAction<GameState>>,
+}
+
 type Word = [string, string[]];
 type Sentence = [string, string[]];
 
@@ -17,18 +24,12 @@ type Dictionary = {
   content: DictionaryContent,
 }
 
-type Mode = 'Ready' | 'Started' | 'Finished';
 
 // TODO 記号はもっとあるよね
 type PrintableASCII =
   'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' |
   'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' |
   ' ';
-
-type PrintableKeyDownEvent = {
-  key: PrintableASCII,
-  elapsedTime: number,
-};
 
 type TypingFinishEvent = TypingResult;
 
@@ -75,6 +76,11 @@ interface KeyStrokeInformation {
 
 interface TypingResult {
   confirmedChunkList: ConfirmedChunk[],
+}
+
+interface TypingResultContext {
+  typingResult: TypingResult,
+  setTypingResult: React.Dispatch<React.SetStateAction<TypingResult>>,
 }
 
 interface QueryInformation {
