@@ -1,21 +1,22 @@
 import React from 'react';
-import { Vocabulary } from './Vocabulary';
 
-export function constructQueryInformation(roughRomanCount: number): QueryInformation {
-  // ここでのwordはローマ字じゃなくて単語
-  // １単語につき平均5ローマ字だという根拠のない仮定
-  const wordCount = Math.floor(roughRomanCount / 5);
+export function constructQueryInformation(vocabularyEntryList: VocabularyEntry[], roughRomanCount: number): QueryInformation {
 
   let viewString = '';
   let hiraganaString = '';
   let hiraganaCount = 0;
   const inViewPositionOfHiraganaString: number[] = [];
 
-  const vocabularyNumber = Vocabulary.length;
+  const vocabularyNumber = vocabularyEntryList.length;
+
+  // ここでのwordはローマ字じゃなくて単語
+  // １単語につき平均5ローマ字だという根拠のない仮定
+  // FIXME 語彙数0だとチャンクが生成されなくてクラッシュするのでどこかで弾く必要がある
+  const wordCount = vocabularyNumber == 0 ? 0 : Math.floor(roughRomanCount / 5);
 
   for (let i = 0; i < wordCount; ++i) {
     const randIndex = Math.floor(Math.random() * (vocabularyNumber));
-    const [wordViewString, wordHiraganaElementList] = Vocabulary[randIndex];
+    const [wordViewString, wordHiraganaElementList] = vocabularyEntryList[randIndex];
 
     if (wordViewString.length != wordHiraganaElementList.length) {
       throw new Error(`${wordViewString} has invalid hiragana`);

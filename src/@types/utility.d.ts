@@ -1,3 +1,22 @@
+interface Window {
+  api: {
+    getDictionaryList: () => Promise<any>,
+    getVocabularyEntryList: (usedDictionaryNameList: string[]) => Promise<any>
+  }
+}
+
+type Word = [string, string[]];
+type Sentence = [string, string[]];
+
+type VocabularyEntry = Word | Sentence;
+
+type DictionaryContent = Array<VocabularyEntry>;
+
+type Dictionary = {
+  name: string,
+  content: DictionaryContent,
+}
+
 type Mode = 'Ready' | 'Started' | 'Finished';
 
 // TODO 記号はもっとあるよね
