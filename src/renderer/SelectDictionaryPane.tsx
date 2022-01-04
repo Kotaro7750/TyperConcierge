@@ -1,32 +1,34 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React from 'react';
 
-import { VocabularyContext } from './App';
+export function SelectDictionaryPane(props: { availableDictionaryNameList: string[], usedDictionaryDispatcher: React.Dispatch<{ type: string, name: string }> }): JSX.Element {
 
-export function SelectDictionaryPane(): JSX.Element {
-  const vocabularyContext = useContext(VocabularyContext);
-
-  const [dictionaryName, setDictionaryName] = useState<string>('');
   const elem: JSX.Element[] = [];
 
-  function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setDictionaryName(e.target.value);
-    // FIXME 確定してから呼ばないと選択しただけでapi呼び出しされてしまう
-    if (vocabularyContext.setUsedDictionaryList != undefined) {
-      vocabularyContext.setUsedDictionaryList([e.target.value]);
+  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.checked) {
+      props.usedDictionaryDispatcher({ type: 'add', name: e.target.value });
+    } else {
+      props.usedDictionaryDispatcher({ type: 'delete', name: e.target.value });
     }
   }
 
-  // FIXME 初期選択されている辞書に対してはsetUsedDictionaryListが呼ばれないのでクラッシュする
-  vocabularyContext.availableDictionaryNameList.forEach((dictionaryName: string, i: number) => {
-    elem.push(<option key={i} value={dictionaryName}>{dictionaryName}</option>);
+  props.availableDictionaryNameList.forEach((dictionaryName: string, i: number) => {
+    const checkbox = (
+      <div key={i} className='form-check'>
+        <label className='form-check-label'>
+          <input className='form-check-input' type='checkbox' value={dictionaryName} onChange={onChange} />
+          {dictionaryName}
+        </label>
+      </div>
+    );
+
+    elem.push(checkbox);
   });
 
   return (
     <div className='row'>
       <div className='col-12'>
-        <select className='form-select' value={dictionaryName} onChange={onChange}>
-          {elem}
-        </select>
+        {elem}
       </div>
     </div>
   );

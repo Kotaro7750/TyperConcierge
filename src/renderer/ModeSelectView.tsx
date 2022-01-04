@@ -1,18 +1,41 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useReducer } from 'react';
 
 import { StartSignal } from './StartSignal';
 import { SelectDictionaryPane } from './SelectDictionaryPane';
 
 import { useCountdownTimer } from './useCountdownTimer';
+
 import { GameStateContext } from './App';
+import { VocabularyContext } from './App';
 
 export function ModeSelectView() {
   const [isReady, setIsReady] = useState<boolean>(false);
   const [countdownTimer, startCountdownTimer, initCountdownTimer] = useCountdownTimer(3, () => startTyping());
   const transitionToTyping = useRef<boolean>(false);
+
   const gameStateContext = useContext(GameStateContext);
+  const vocabularyContext = useContext(VocabularyContext);
+
+  const usedDictionaryReducer = (state: string[], action: { type: string, name: string }) => {
+    switch (action.type) {
+      case 'add':
+        return state.concat([action.name]);
+
+      case 'delete':
+        return state.filter(dictionaryName => action.name != dictionaryName);
+      default:
+        throw new Error(`${action.type} is not supportted`);
+    }
+  };
+  const [usedDictionary, dispatchUsedDictionary] = useReducer(usedDictionaryReducer, []);
 
   const confirmReady = () => {
+    // TODO ここで判定するの汚い
+    if (usedDictionary.length == 0 || vocabularyContext.setUsedDictionaryList == undefined) {
+      return;
+    }
+
+    vocabularyContext.setUsedDictionaryList(usedDictionary);
     setIsReady(true);
     startCountdownTimer();
   }
@@ -60,10 +83,10 @@ export function ModeSelectView() {
           :
           (
             <div className='position-absolute top-50 start-50 translate-middle w-50'>
-              <SelectDictionaryPane />
+              <SelectDictionaryPane availableDictionaryNameList={vocabularyContext.availableDictionaryNameList} usedDictionaryDispatcher={dispatchUsedDictionary} />
               <div className='row d-flex justify-content-center mt-3'>
                 <div className='col-6 d-flex justify-content-center'>
-                  <button onClick={confirmReady} className='btn btn-lg btn-outline-primary'>Start</button>
+                  <button onClick={confirmReady} className='btn btn-lg btn-outline-primary' disabled={usedDictionary.length == 0}>Start</button>
                 </div>
               </div>
             </div>
