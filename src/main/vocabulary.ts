@@ -1,5 +1,4 @@
-import { app, dialog } from 'electron';
-import os from 'os';
+import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import fsPromises from 'fs/promises';
@@ -79,7 +78,11 @@ export class Vocabulary {
         if (result.status === 'fulfilled') {
           const dictionary = result.value;
 
-          this.dictionaryMap.set(dictionary.name, dictionary.content);
+
+          // TODO 空の辞書の存在はユーザーに伝えてあげた方が親切
+          if (dictionary.content.length != 0) {
+            this.dictionaryMap.set(dictionary.name, dictionary.content);
+          }
         } else {
           // TODO ユーザーに知らせる
           console.error(result.reason);
