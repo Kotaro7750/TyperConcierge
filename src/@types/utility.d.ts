@@ -17,10 +17,15 @@ type Sentence = [string, string[]];
 
 type VocabularyEntry = Word | Sentence;
 
+type DictionaryInfo = {
+  name: string,
+  enable: boolean,
+  errorLineList: number[],
+}
+
 type DictionaryContent = Array<VocabularyEntry>;
 
-type Dictionary = {
-  name: string,
+type Dictionary = DictionaryInfo & {
   content: DictionaryContent,
 }
 

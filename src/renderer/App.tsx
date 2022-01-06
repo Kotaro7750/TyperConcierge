@@ -8,9 +8,9 @@ import { constructQueryInformation } from './utility';
 import { useVocabulary } from './useVocabulary';
 
 // FIXME 関数の初期値を渡す場合にはどうしたらいいのだろうか
-export const VocabularyContext = createContext<{ availableDictionaryNameList: string[], setUsedDictionaryList: React.Dispatch<React.SetStateAction<string[]>> | undefined }>(
+export const VocabularyContext = createContext<{ availableDictionaryList: DictionaryInfo[], setUsedDictionaryList: React.Dispatch<React.SetStateAction<string[]>> | undefined }>(
   {
-    availableDictionaryNameList: [],
+    availableDictionaryList: [],
     setUsedDictionaryList: undefined,
   }
 );
@@ -27,13 +27,12 @@ export function App() {
 
   const queryInformation: QueryInformation = useMemo(() => constructQueryInformation(vocabularyEntryList, 100), [vocabularyEntryList]);
 
-
   return (
     <div className='container-fluid'>
       <GameStateContext.Provider value={{ gameState: gameState, setGameState: setGameState }}>
         {
           gameState === 'ModeSelect'
-            ? <VocabularyContext.Provider value={{ availableDictionaryNameList: availableDictionaryNameList, setUsedDictionaryList: setUsedDictionaryList }}>
+            ? <VocabularyContext.Provider value={{ availableDictionaryList: availableDictionaryNameList, setUsedDictionaryList: setUsedDictionaryList }}>
               <ModeSelectView />
             </VocabularyContext.Provider>
 

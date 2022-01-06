@@ -2,7 +2,7 @@
   "name": "TyperConcierge",
   "version": "0.0.0",
   "description": "cross-platform typewell-like typing application",
-  "main": "dist/main.js",
+  "main": "dist/main/main.js",
   "scripts": {
     "dev": "run-p dev:*",
     "dev:tsc": "tsc -w -p tsconfig.main.json",

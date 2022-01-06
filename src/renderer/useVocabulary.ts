@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
-export function useVocabulary(): [string[], React.Dispatch<React.SetStateAction<string[]>>, VocabularyEntry[]] {
-  const [availableDictionaryNameList, setAvailableDictionaryList] = useState<string[]>([]);
+export function useVocabulary(): [DictionaryInfo[], React.Dispatch<React.SetStateAction<string[]>>, VocabularyEntry[]] {
+  const [availableDictionaryList, setAvailableDictionaryList] = useState<DictionaryInfo[]>([]);
   const [usedDictionaryNameList, setUsedDictionaryNameList] = useState<string[]>([]);
 
   const [vocabularyEntryList, setVocabularyEntryList] = useState<VocabularyEntry[]>([]);
@@ -19,5 +19,5 @@ export function useVocabulary(): [string[], React.Dispatch<React.SetStateAction<
     });
   }, [usedDictionaryNameList]);
 
-  return [availableDictionaryNameList, setUsedDictionaryNameList, vocabularyEntryList];
+  return [availableDictionaryList, setUsedDictionaryNameList, vocabularyEntryList];
 }

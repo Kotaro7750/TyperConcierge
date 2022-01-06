@@ -84,7 +84,7 @@ export function ModeSelectView() {
           (
             <div className='w-50 d-flex flex-column justify-content-center'>
               <div className='h-25 row p-2 border border-secondary rounded-3 border-2 bg-white'>
-                <SelectDictionaryPane availableDictionaryNameList={vocabularyContext.availableDictionaryNameList} usedDictionaryList={usedDictionary} usedDictionaryDispatcher={dispatchUsedDictionary} />
+                <SelectDictionaryPane availableDictionaryList={vocabularyContext.availableDictionaryList} usedDictionaryList={usedDictionary} usedDictionaryDispatcher={dispatchUsedDictionary} />
               </div>
               <div className='row d-flex justify-content-center mt-3'>
                 <div className='col-6 d-flex justify-content-center'>

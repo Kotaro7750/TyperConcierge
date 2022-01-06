@@ -5,7 +5,7 @@ import { Vocabulary } from './vocabulary';
 const isDev = process.env.NODE_ENV === 'development';
 
 if (isDev) {
-  const execPath = '../node_modules/.bin/electron';
+  const execPath = '../../node_modules/.bin/electron';
 
   require('electron-reload')(__dirname, {
     electron: path.resolve(__dirname, execPath),
