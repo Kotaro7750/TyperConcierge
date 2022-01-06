@@ -5,7 +5,7 @@ export function StartSignal(props: { countdownTimer: number }): JSX.Element {
   const [initialCount] = useState(props.countdownTimer);
 
   // 少し汚いがCSSのプロパティを動的に設定することでアニメーションを実現する
-  const r = '20%';
+  const r = '15%';
   const circumference = `calc(2 * ${Math.PI.toString()} * ${r})`;
   // 円周の経過時間/設定時間だけオフセットする(空白になる)
   // -1をかけているのは空白の回る方向を右回りにするため

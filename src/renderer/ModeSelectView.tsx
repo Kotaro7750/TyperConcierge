@@ -76,17 +76,19 @@ export function ModeSelectView() {
   });
 
   return (
-    <div className='w-100'>
+    <div className='w-100 vh-100 d-flex flex-row justify-content-center'>
       {
         isReady
-          ? <div className='position-absolute top-50 start-50 translate-middle vh-50'><StartSignal countdownTimer={countdownTimer} /></div>
+          ? <div className='w-50 d-flex flex-column justify-content-center'><StartSignal countdownTimer={countdownTimer} /></div>
           :
           (
-            <div className='position-absolute top-50 start-50 translate-middle w-50'>
-              <SelectDictionaryPane availableDictionaryNameList={vocabularyContext.availableDictionaryNameList} usedDictionaryDispatcher={dispatchUsedDictionary} />
+            <div className='w-50 d-flex flex-column justify-content-center'>
+              <div className='h-25 row p-2 border border-secondary rounded-3 border-2 bg-white'>
+                <SelectDictionaryPane availableDictionaryNameList={vocabularyContext.availableDictionaryNameList} usedDictionaryList={usedDictionary} usedDictionaryDispatcher={dispatchUsedDictionary} />
+              </div>
               <div className='row d-flex justify-content-center mt-3'>
                 <div className='col-6 d-flex justify-content-center'>
-                  <button onClick={confirmReady} className='btn btn-lg btn-outline-primary' disabled={usedDictionary.length == 0}>Start</button>
+                  <button onClick={confirmReady} className='btn btn-lg btn-primary' disabled={usedDictionary.length == 0}>Start</button>
                 </div>
               </div>
             </div>

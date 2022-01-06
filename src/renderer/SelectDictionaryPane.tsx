@@ -1,6 +1,8 @@
 import React from 'react';
 
-export function SelectDictionaryPane(props: { availableDictionaryNameList: string[], usedDictionaryDispatcher: React.Dispatch<{ type: string, name: string }> }): JSX.Element {
+export function SelectDictionaryPane(props: { availableDictionaryNameList: string[], usedDictionaryList: string[], usedDictionaryDispatcher: React.Dispatch<{ type: string, name: string }> }): JSX.Element {
+
+  const usedDictionaryOneHot = new Map<string, boolean>(props.usedDictionaryList.map(e => [e, true]));
 
   const elem: JSX.Element[] = [];
 
@@ -13,23 +15,28 @@ export function SelectDictionaryPane(props: { availableDictionaryNameList: strin
   }
 
   props.availableDictionaryNameList.forEach((dictionaryName: string, i: number) => {
+    //const checkbox = (
+    //  <div key={i} className='form-check'>
+    //    <label className='form-check-label'>
+    //      <input className='form-check-input' type='checkbox' value={dictionaryName} onChange={onChange} checked={usedDictionaryOneHot.has(dictionaryName)} />
+    //      {dictionaryName}
+    //    </label>
+    //  </div>
+    //);
+
     const checkbox = (
-      <div key={i} className='form-check'>
-        <label className='form-check-label'>
-          <input className='form-check-input' type='checkbox' value={dictionaryName} onChange={onChange} />
-          {dictionaryName}
-        </label>
-      </div>
+      <label key={i} className={`list-group-item w-100 btn ${usedDictionaryOneHot.has(dictionaryName) && 'active'}`}>
+        <input className='btn-check' type='checkbox' value={dictionaryName} onChange={onChange} checked={usedDictionaryOneHot.has(dictionaryName)} />
+        {dictionaryName}
+      </label>
     );
 
     elem.push(checkbox);
   });
 
   return (
-    <div className='row'>
-      <div className='col-12'>
-        {elem}
-      </div>
+    <div className='h-100 w-100 list-group overflow-auto'>
+      {elem}
     </div>
   );
 }
