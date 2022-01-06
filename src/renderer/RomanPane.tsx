@@ -12,8 +12,8 @@ function LapLine(props: { styledStringElementList: JSX.Element[], lapTimeMilliSe
           {props.styledStringElementList}
         </span>
       </div>
-      <div className='col-1 border border-secondary border-2 rounded-3 text-end bg-white'>
-        {lapTimeString}
+      <div className='p-0 d-flex justify-content-center align-items-center col-1 border border-secondary border-2 rounded-3 text-center bg-white'>
+        <span className='align-middle'>{lapTimeString}</span>
       </div>
     </div>
   );
