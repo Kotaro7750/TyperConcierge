@@ -16,10 +16,6 @@ const common: Configuration = {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.json'],
   },
 
-  output: {
-    path: path.resolve(__dirname, 'dist')
-  },
-
   module: {
     rules: [
       {
@@ -63,7 +59,7 @@ const common: Configuration = {
         }]
       },
       {
-        test: /\.svg$/,
+        test: /\.(svg|png)/,
         loader: 'url-loader',
       }
     ]
@@ -81,6 +77,9 @@ const main: Configuration = {
   entry: {
     main: './src/main/main.ts',
   },
+  output: {
+    path: path.resolve(__dirname, 'dist', 'main')
+  },
 };
 
 // プリロードスクリプト向け設定
@@ -90,6 +89,9 @@ const preload: Configuration = {
   entry: {
     preload: './src/main/preload.ts',
   },
+  output: {
+    path: path.resolve(__dirname, 'dist', 'main')
+  },
 };
 
 // レンダラープロセス向け設定
@@ -98,6 +100,9 @@ const renderer: Configuration = {
   target: 'web',
   entry: {
     renderer: './src/renderer/main.tsx',
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist', 'renderer')
   },
   plugins: [
     new HtmlWebpackPlugin({

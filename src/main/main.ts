@@ -1,5 +1,5 @@
 import path from 'path';
-import { BrowserWindow, app, ipcMain } from 'electron';
+import { BrowserWindow, app, ipcMain, Tray } from 'electron';
 import { Vocabulary } from './vocabulary';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -7,7 +7,7 @@ const isDev = process.env.NODE_ENV === 'development';
 if (isDev) {
   const execPath = '../../node_modules/.bin/electron';
 
-  require('electron-reload')(__dirname, {
+  require('electron-reload')(path.resolve(__dirname, '..'), {
     electron: path.resolve(__dirname, execPath),
     forceHardReset: true,
     hardResetMethod: 'exit',
@@ -31,7 +31,7 @@ const createWindow = () => {
   }
 
   // レンダラープロセスをロード
-  mainWindow.loadFile('dist/index.html');
+  mainWindow.loadFile('dist/renderer/index.html');
 };
 
 let vocabulary: Vocabulary;
