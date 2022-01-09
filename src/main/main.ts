@@ -31,7 +31,7 @@ const createWindow = () => {
   }
 
   // レンダラープロセスをロード
-  mainWindow.loadFile('dist/renderer/index.html');
+  mainWindow.loadFile('build/renderer/index.html');
 };
 
 let vocabulary: Vocabulary;

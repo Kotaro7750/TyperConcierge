@@ -2,23 +2,23 @@
   "name": "TyperConcierge",
   "version": "0.0.0",
   "description": "cross-platform typewell-like typing application",
-  "main": "dist/main/main.js",
+  "main": "build/main/main.js",
   "scripts": {
     "dev": "run-p dev:*",
     "dev:tsc": "tsc -w -p tsconfig.main.json",
     "dev:webpack": "cross-env NODE_ENV=\"development\" webpack",
-    "dev:electron": "wait-on ./dist/renderer/index.html && cross-env NODE_ENV=\"development\" electron .",
-    "pack": "cross-env NODE_ENV=\"production\" electron-builder --dir",
-    "build": "cross-env NODE_ENV=\"production\" electron-builder --mac --linux --win"
+    "dev:electron": "wait-on ./build/renderer/index.html && cross-env NODE_ENV=\"development\" electron .",
+    "build": "cross-env NODE_ENV=\"production\" webpack",
+    "package": "cross-env NODE_ENV=\"production\" electron-builder --mac --linux --win"
   },
   "author": "Kotaro7750",
   "license": "MIT",
   "build": {
     "directories": {
-      "output": "build"
+      "output": "package"
     },
     "files": [
-      "dist/**/*"
+      "build/**/*"
     ],
     "win": {
       "icon": "./src/asset/512x512.png"

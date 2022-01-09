@@ -69,6 +69,8 @@ const common: Configuration = {
   devtool: isDev ? 'inline-source-map' : undefined
 };
 
+const buildDir = path.resolve(__dirname, 'build');
+
 
 // メインプロセス向け設定
 const main: Configuration = {
@@ -78,7 +80,7 @@ const main: Configuration = {
     main: './src/main/main.ts',
   },
   output: {
-    path: path.resolve(__dirname, 'dist', 'main')
+    path: path.resolve(buildDir, 'main')
   },
 };
 
@@ -90,7 +92,7 @@ const preload: Configuration = {
     preload: './src/main/preload.ts',
   },
   output: {
-    path: path.resolve(__dirname, 'dist', 'main')
+    path: path.resolve(buildDir, 'main')
   },
 };
 
@@ -102,7 +104,7 @@ const renderer: Configuration = {
     renderer: './src/renderer/main.tsx',
   },
   output: {
-    path: path.resolve(__dirname, 'dist', 'renderer')
+    path: path.resolve(buildDir, 'renderer')
   },
   plugins: [
     new HtmlWebpackPlugin({
