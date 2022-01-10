@@ -1,23 +1,27 @@
 import { useState, useEffect } from 'react';
 
-export function useVocabulary(): [DictionaryInfo[], React.Dispatch<React.SetStateAction<string[]>>, VocabularyEntry[]] {
+export function useVocabulary(): [DictionaryInfo[], React.Dispatch<React.SetStateAction<string[]>>, () => void, VocabularyEntry[]] {
   const [availableDictionaryList, setAvailableDictionaryList] = useState<DictionaryInfo[]>([]);
-  const [usedDictionaryNameList, setUsedDictionaryNameList] = useState<string[]>([]);
+  const [usedDictionaryFileNameList, setUsedDictionaryFileNameList] = useState<string[]>([]);
 
   const [vocabularyEntryList, setVocabularyEntryList] = useState<VocabularyEntry[]>([]);
 
-  // 依存なしなので初回のみ
-  useEffect(() => {
+  const loadAvailableDictionaryList = () => {
     window.api.getDictionaryList().then(list => {
       setAvailableDictionaryList(list);
     });
+  };
+
+  // 依存なしなので初回のみ
+  useEffect(() => {
+    loadAvailableDictionaryList();
   }, []);
 
   useEffect(() => {
-    window.api.getVocabularyEntryList(usedDictionaryNameList).then(list => {
+    window.api.getVocabularyEntryList(usedDictionaryFileNameList).then(list => {
       setVocabularyEntryList(list);
     });
-  }, [usedDictionaryNameList]);
+  }, [usedDictionaryFileNameList]);
 
-  return [availableDictionaryList, setUsedDictionaryNameList, vocabularyEntryList];
+  return [availableDictionaryList, setUsedDictionaryFileNameList, loadAvailableDictionaryList, vocabularyEntryList];
 }

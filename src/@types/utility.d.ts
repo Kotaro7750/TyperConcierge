@@ -19,6 +19,7 @@ type VocabularyEntry = Word | Sentence;
 
 type DictionaryInfo = {
   name: string,
+  type: 'word' | 'sentence',
   enable: boolean,
   errorLineList: number[],
 }

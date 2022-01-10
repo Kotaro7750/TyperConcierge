@@ -56,7 +56,9 @@ app.once('window-all-closed', () => {
   }
 });
 
-ipcMain.handle('getDictionaryList', (_) => {
+
+ipcMain.handle('getDictionaryList', async (_) => {
+  await vocabulary.reloadVocabulary();
   return vocabulary.getDictionaryList();
 });
 

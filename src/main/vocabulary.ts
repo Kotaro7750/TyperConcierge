@@ -4,7 +4,7 @@ import fs from 'fs';
 import fsPromises from 'fs/promises';
 
 import { fatalErrorAndExit } from './utility';
-import { isValidVocabulary } from '../commonUtility';
+import { isValidVocabulary, WORD_DICTIONARY_EXTENSION, SENTENCE_DICTIONARY_EXTENSION, concatDictionaryFileName } from '../commonUtility';
 
 export class Vocabulary {
   dictionaryMap: Map<string, Dictionary>;
@@ -28,6 +28,7 @@ export class Vocabulary {
 
       const dictionaryInfo = {
         name: dictionary.name,
+        type: dictionary.type,
         errorLineList: dictionary.errorLineList,
         enable: dictionary.enable,
       };
@@ -41,17 +42,17 @@ export class Vocabulary {
   getVocabularyEntryList = (usedDictionaryNameList: string[]): Array<VocabularyEntry> => {
     let vocabularyEntryList: Array<VocabularyEntry> = [];
 
-    usedDictionaryNameList.forEach(dictionaryName => {
-      if (this.dictionaryMap.has(dictionaryName)) {
+    usedDictionaryNameList.forEach(dictionaryFileName => {
+      if (this.dictionaryMap.has(dictionaryFileName)) {
         // キーを持っていることは確かめているのでキャストしてもよいはず
-        vocabularyEntryList = vocabularyEntryList.concat((this.dictionaryMap.get(dictionaryName) as Dictionary).content);
+        vocabularyEntryList = vocabularyEntryList.concat((this.dictionaryMap.get(dictionaryFileName) as Dictionary).content);
       }
     });
 
     return vocabularyEntryList;
   }
 
-  initVocabulary = async (): Promise<void> => {
+  getDictionaryFileList = () => {
     const userDataPath = app.getPath('userData');
     const vocabularyDirPath = path.join(userDataPath, 'vocabulary');
 
@@ -70,24 +71,70 @@ export class Vocabulary {
       }
     }
 
+    return dictionaryFileList.filter(dictionaryFileName => {
+      const extension = path.extname(dictionaryFileName);
+
+      return extension === WORD_DICTIONARY_EXTENSION || extension === SENTENCE_DICTIONARY_EXTENSION;
+    });
+  }
+
+  initVocabulary = async (): Promise<void> => {
+    const vocabularyDirPath = path.join(app.getPath('userData'), 'vocabulary');
+
+    const dictionaryFileList = this.getDictionaryFileList();
+
     const dictionaryPromiseList: Promise<Dictionary>[] = [];
 
-    dictionaryFileList.forEach(dictionaryFile => {
-      const extension = path.extname(dictionaryFile);
+    dictionaryFileList.forEach(dictionaryFileName => {
+      const filePath = path.join(vocabularyDirPath, dictionaryFileName);
 
-      if (extension === '.tconciergew' || extension === '.tconcierges') {
-        const filePath = path.join(vocabularyDirPath, dictionaryFile);
-
-        dictionaryPromiseList.push(this.initDictionary(filePath));
-      }
+      dictionaryPromiseList.push(this.initDictionary(filePath));
     });
 
     await Promise.allSettled(dictionaryPromiseList).then(result => {
       result.forEach(result => {
         if (result.status === 'fulfilled') {
           const dictionary = result.value;
+          const key = concatDictionaryFileName(dictionary);
 
-          this.dictionaryMap.set(dictionary.name, dictionary);
+          this.dictionaryMap.set(key, dictionary);
+        } else {
+          // TODO ユーザーに知らせる
+          console.error(result.reason);
+        }
+      });
+    });
+  }
+
+  reloadVocabulary = async (): Promise<void> => {
+    const vocabularyDirPath = path.join(app.getPath('userData'), 'vocabulary');
+
+    const dictionaryFileList = this.getDictionaryFileList();
+    const oldMap = this.dictionaryMap;
+
+    this.dictionaryMap = new Map();
+    const dictionaryPromiseList: Promise<Dictionary>[] = [];
+
+    dictionaryFileList.forEach(dictionaryFileName => {
+
+      // キャッシュされていなかったファイルのみ新たにパースする
+      // TODO タイムスタンプを用いて古くなったキャッシュを更新する
+      if (oldMap.has(dictionaryFileName)) {
+        this.dictionaryMap.set(dictionaryFileName, oldMap.get(dictionaryFileName) as Dictionary);
+      } else {
+        const filePath = path.join(vocabularyDirPath, dictionaryFileName);
+        dictionaryPromiseList.push(this.initDictionary(filePath));
+      }
+    });
+
+    // FIXME initDictionaryにも同じロジックがあった
+    await Promise.allSettled(dictionaryPromiseList).then(result => {
+      result.forEach(result => {
+        if (result.status === 'fulfilled') {
+          const dictionary = result.value;
+          const key = concatDictionaryFileName(dictionary);
+
+          this.dictionaryMap.set(key, dictionary);
         } else {
           // TODO ユーザーに知らせる
           console.error(result.reason);
@@ -105,7 +152,7 @@ export class Vocabulary {
       let dictionaryContent: DictionaryContent;
       let errorLineList: number[];
 
-      if (extension === '.tconciergew') {
+      if (extension === WORD_DICTIONARY_EXTENSION) {
         [dictionaryContent, errorLineList] = this.parseWordDictionary(content);
       } else {
         [dictionaryContent, errorLineList] = this.parseSentenceDictionary(content);
@@ -113,6 +160,7 @@ export class Vocabulary {
 
       return {
         name: dictionaryName,
+        type: extension === WORD_DICTIONARY_EXTENSION ? 'word' : 'sentence',
         enable: dictionaryContent.length != 0,
         errorLineList: errorLineList,
         content: dictionaryContent,
