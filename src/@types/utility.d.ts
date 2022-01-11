@@ -21,6 +21,7 @@ type DictionaryInfo = {
   name: string,
   type: 'word' | 'sentence',
   enable: boolean,
+  timestamp: number,
   errorLineList: number[],
 }
 

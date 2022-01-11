@@ -31,6 +31,7 @@ export class LibraryManager {
       const dictionaryInfo = {
         name: dictionary.name,
         type: dictionary.type,
+        timestamp: dictionary.timestamp,
         errorLineList: dictionary.errorLineList,
         enable: dictionary.enable,
       };
@@ -111,13 +112,12 @@ export class LibraryManager {
     const dictionaryPromiseList: Promise<Dictionary>[] = [];
 
     dictionaryFileList.forEach(dictionaryFileName => {
+      const filePath = path.join(this.libraryDirPath, dictionaryFileName);
 
       // キャッシュされていなかったファイルのみ新たにパースする
-      // TODO タイムスタンプを用いて古くなったキャッシュを更新する
-      if (oldMap.has(dictionaryFileName)) {
+      if (oldMap.has(dictionaryFileName) && this.isSameTimestamp(filePath, (oldMap.get(dictionaryFileName) as Dictionary))) {
         this.dictionaryMap.set(dictionaryFileName, oldMap.get(dictionaryFileName) as Dictionary);
       } else {
-        const filePath = path.join(this.libraryDirPath, dictionaryFileName);
         dictionaryPromiseList.push(this.initDictionary(filePath));
       }
     });
@@ -138,28 +138,41 @@ export class LibraryManager {
     });
   }
 
+  isSameTimestamp = (filePath: string, dictionary: Dictionary): boolean => {
+    try {
+      return fs.statSync(filePath).mtimeMs === dictionary.timestamp;
+    } catch (e) {
+      // 何らかのエラーがあったらタイムスタンプが異なるとみなす
+      return false;
+    }
+  }
+
   initDictionary = (filePath: string): Promise<Dictionary> => {
     const extension = path.extname(filePath);
     // TODO プラットフォームによっては正しく切り出せないかもしれない
     const dictionaryName = path.basename(filePath, extension);
 
     return fsPromises.readFile(filePath, { encoding: 'utf-8' }).then((content: string) => {
-      let dictionaryContent: DictionaryContent;
-      let errorLineList: number[];
 
-      if (extension === WORD_DICTIONARY_EXTENSION) {
-        [dictionaryContent, errorLineList] = this.parseWordDictionary(content);
-      } else {
-        [dictionaryContent, errorLineList] = this.parseSentenceDictionary(content);
-      }
+      return fsPromises.stat(filePath).then(stat => {
+        let dictionaryContent: DictionaryContent;
+        let errorLineList: number[];
 
-      return {
-        name: dictionaryName,
-        type: extension === WORD_DICTIONARY_EXTENSION ? 'word' : 'sentence',
-        enable: dictionaryContent.length != 0,
-        errorLineList: errorLineList,
-        content: dictionaryContent,
-      };
+        if (extension === WORD_DICTIONARY_EXTENSION) {
+          [dictionaryContent, errorLineList] = this.parseWordDictionary(content);
+        } else {
+          [dictionaryContent, errorLineList] = this.parseSentenceDictionary(content);
+        }
+
+        return {
+          name: dictionaryName,
+          type: extension === WORD_DICTIONARY_EXTENSION ? 'word' : 'sentence',
+          enable: dictionaryContent.length != 0,
+          timestamp: stat.mtimeMs,
+          errorLineList: errorLineList,
+          content: dictionaryContent,
+        };
+      });
     });
   }
 
