@@ -8,11 +8,14 @@ import { constructQueryInformation } from './utility';
 import { useVocabulary } from './useVocabulary';
 
 // FIXME 関数の初期値を渡す場合にはどうしたらいいのだろうか
-export const VocabularyContext = createContext<{ availableDictionaryList: DictionaryInfo[], setUsedDictionaryList: React.Dispatch<React.SetStateAction<string[]>> | undefined, loadAvailableDictionaryList: () => void }>(
+export const VocabularyContext = createContext<{ library: Library, libraryOperator: (action: LibraryOperatorActionType) => void }>(
   {
-    availableDictionaryList: [],
-    setUsedDictionaryList: undefined,
-    loadAvailableDictionaryList: () => { },
+    library: {
+      availableDictionaryList: [],
+      usedDictionaryFileNameList: [],
+      vocabularyEntryList: [],
+    },
+    libraryOperator: () => { },
   }
 );
 
@@ -24,16 +27,16 @@ export function App() {
   const [typingResult, setTypingResult] = useState<TypingResult>({} as TypingResult);
 
   // TODO ここらへんuseReduceが使えそう
-  const [availableDictionaryList, setUsedDictionaryList, loadAvailableDictionaryList, vocabularyEntryList] = useVocabulary();
+  const [library, libraryOperator] = useVocabulary();
 
-  const queryInformation: QueryInformation = useMemo(() => constructQueryInformation(vocabularyEntryList, 100), [vocabularyEntryList]);
+  const queryInformation: QueryInformation = useMemo(() => constructQueryInformation(library.vocabularyEntryList, 100), [library.vocabularyEntryList]);
 
   return (
     <div className='container-fluid'>
       <GameStateContext.Provider value={{ gameState: gameState, setGameState: setGameState }}>
         {
           gameState === 'ModeSelect'
-            ? <VocabularyContext.Provider value={{ availableDictionaryList: availableDictionaryList, setUsedDictionaryList: setUsedDictionaryList, loadAvailableDictionaryList: loadAvailableDictionaryList }}>
+            ? <VocabularyContext.Provider value={{ library: library, libraryOperator: libraryOperator }}>
               <ModeSelectView />
             </VocabularyContext.Provider>
 

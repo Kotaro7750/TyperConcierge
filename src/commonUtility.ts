@@ -1,7 +1,7 @@
 export const WORD_DICTIONARY_EXTENSION = '.tconciergew';
 export const SENTENCE_DICTIONARY_EXTENSION = '.tconcierges';
 
-export function isValidVocabulary(viewString: string, hiraganaElementList: string[]): boolean {
+export function isValidVocabularyEntry(viewString: string, hiraganaElementList: string[]): boolean {
   return viewString.length == hiraganaElementList.length;
 }
 

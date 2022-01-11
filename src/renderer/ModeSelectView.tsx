@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useReducer } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 
 import { StartSignal } from './StartSignal';
 import { SelectDictionaryPane } from './SelectDictionaryPane';
@@ -16,26 +16,19 @@ export function ModeSelectView() {
   const gameStateContext = useContext(GameStateContext);
   const vocabularyContext = useContext(VocabularyContext);
 
-  const usedDictionaryReducer = (state: string[], action: { type: string, name: string }) => {
-    switch (action.type) {
-      case 'add':
-        return state.concat([action.name]);
+  const library = vocabularyContext.library;
+  const libraryOperator = vocabularyContext.libraryOperator;
 
-      case 'delete':
-        return state.filter(dictionaryName => action.name != dictionaryName);
-      default:
-        throw new Error(`${action.type} is not supportted`);
-    }
-  };
-  const [usedDictionary, dispatchUsedDictionary] = useReducer(usedDictionaryReducer, []);
+  const canStart = () => {
+    return library.usedDictionaryFileNameList.length !== 0;
+  }
 
   const confirmReady = () => {
-    // TODO ここで判定するの汚い
-    if (usedDictionary.length == 0 || vocabularyContext.setUsedDictionaryList == undefined) {
+    if (!canStart()) {
       return;
     }
 
-    vocabularyContext.setUsedDictionaryList(usedDictionary);
+    libraryOperator({ type: 'constructVocabulary' });
     setIsReady(true);
     startCountdownTimer();
   }
@@ -85,16 +78,16 @@ export function ModeSelectView() {
             <div className='w-50 d-flex flex-column justify-content-center'>
               <div className='row mb-1'>
                 <div className='p-0 d-flex justify-content-end'>
-                  <button className='btn btn-sm btn-outline-success' onClick={vocabularyContext.loadAvailableDictionaryList}><i className="bi bi-arrow-clockwise"></i></button>
+                  <button className='btn btn-sm btn-outline-success' onClick={() => { libraryOperator({ type: 'load' }); }}><i className="bi bi-arrow-clockwise"></i></button>
                 </div>
               </div>
 
               <div className='h-25 row p-2 border border-secondary rounded-3 border-2 bg-white'>
-                <SelectDictionaryPane availableDictionaryList={vocabularyContext.availableDictionaryList} usedDictionaryList={usedDictionary} usedDictionaryDispatcher={dispatchUsedDictionary} />
+                <SelectDictionaryPane availableDictionaryList={library.availableDictionaryList} usedDictionaryList={library.usedDictionaryFileNameList} libraryOperator={libraryOperator} />
               </div>
               <div className='row d-flex justify-content-center mt-3'>
                 <div className='col-6 d-flex justify-content-center'>
-                  <button onClick={confirmReady} className='btn btn-lg btn-primary' disabled={usedDictionary.length == 0}>Start</button>
+                  <button onClick={confirmReady} className='btn btn-lg btn-primary' disabled={!canStart()}>Start</button>
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {isValidVocabulary} from '../commonUtility';
+import {isValidVocabularyEntry} from '../commonUtility';
 
 export function constructQueryInformation(vocabularyEntryList: VocabularyEntry[], roughRomanCount: number): QueryInformation {
 
@@ -20,7 +20,7 @@ export function constructQueryInformation(vocabularyEntryList: VocabularyEntry[]
     const randIndex = Math.floor(Math.random() * (vocabularyNumber));
     const [wordViewString, wordHiraganaElementList] = vocabularyEntryList[randIndex];
 
-    if (!isValidVocabulary(wordViewString,wordHiraganaElementList)) {
+    if (!isValidVocabularyEntry(wordViewString,wordHiraganaElementList)) {
       throw new Error(`Length mismatch detected in word ${wordViewString}`);
     }
 

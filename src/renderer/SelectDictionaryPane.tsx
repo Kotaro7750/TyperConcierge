@@ -1,29 +1,31 @@
 import React from 'react';
 import { concatDictionaryFileName } from '../commonUtility';
 
-export function SelectDictionaryPane(props: { availableDictionaryList: DictionaryInfo[], usedDictionaryList: string[], usedDictionaryDispatcher: React.Dispatch<{ type: string, name: string }> }): JSX.Element {
+export function SelectDictionaryPane(props: { availableDictionaryList: DictionaryInfo[], usedDictionaryList: string[], libraryOperator: (action: LibraryOperatorActionType) => void }): JSX.Element {
   const usedDictionaryOneHot = new Map<string, boolean>(props.usedDictionaryList.map(e => [e, true]));
 
   const elem: JSX.Element[] = [];
 
+  // 辞書リストのそれぞれの辞書をトグルしたときのハンドラ
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.checked) {
-      props.usedDictionaryDispatcher({ type: 'add', name: e.target.value });
+      props.libraryOperator({ type: 'use', dictionaryName: e.target.value });
     } else {
-      props.usedDictionaryDispatcher({ type: 'delete', name: e.target.value });
+      props.libraryOperator({ type: 'disuse', dictionaryName: e.target.value });
     }
   }
 
   const DISABLED_DICTIONARY_TOOLTIP_TEXT = '辞書に含まれる語彙がありません';
   const DICTIONARY_CONTAIN_ERROR_TOOLTIP_TEXT_BASE = '以下の行に無効な語彙があります';
 
+  // 辞書リストのそれぞれの項目を構築
   props.availableDictionaryList.forEach((dictionaryInfo: DictionaryInfo, i: number) => {
     const dictionaryFileName = concatDictionaryFileName(dictionaryInfo);
-
     const dictionaryName = dictionaryInfo.name;
     const enable = dictionaryInfo.enable;
     const used = usedDictionaryOneHot.has(dictionaryFileName);
 
+    // 辞書に無効な語彙を含むときの警告文の生成
     let containErrorTooltipText = DICTIONARY_CONTAIN_ERROR_TOOLTIP_TEXT_BASE;
     dictionaryInfo.errorLineList.forEach(lineNum => {
       containErrorTooltipText = containErrorTooltipText.concat(`\r\n${lineNum}行目`);

@@ -4,20 +4,22 @@ import fs from 'fs';
 import fsPromises from 'fs/promises';
 
 import { fatalErrorAndExit } from './utility';
-import { isValidVocabulary, WORD_DICTIONARY_EXTENSION, SENTENCE_DICTIONARY_EXTENSION, concatDictionaryFileName } from '../commonUtility';
+import { isValidVocabularyEntry, WORD_DICTIONARY_EXTENSION, SENTENCE_DICTIONARY_EXTENSION, concatDictionaryFileName } from '../commonUtility';
 
-export class Vocabulary {
+export class LibraryManager {
   dictionaryMap: Map<string, Dictionary>;
+  libraryDirPath: string;
 
   constructor() {
     this.dictionaryMap = new Map();
+    this.libraryDirPath = path.join(app.getPath('userData'), 'vocabulary');
   }
 
-  static async init(): Promise<Vocabulary> {
-    const vocabulary = new Vocabulary();
-    await vocabulary.initVocabulary();
+  static async init(): Promise<LibraryManager> {
+    const libraryManager = new LibraryManager();
+    await libraryManager.initLibrary();
 
-    return vocabulary;
+    return libraryManager;
   }
 
   getDictionaryList = (): Array<DictionaryInfo> => {
@@ -53,18 +55,15 @@ export class Vocabulary {
   }
 
   getDictionaryFileList = () => {
-    const userDataPath = app.getPath('userData');
-    const vocabularyDirPath = path.join(userDataPath, 'vocabulary');
-
     let dictionaryFileList: string[];
     // userData配下のvocabularyにあるファイル一覧を取得する
     try {
-      dictionaryFileList = fs.readdirSync(vocabularyDirPath);
+      dictionaryFileList = fs.readdirSync(this.libraryDirPath);
     } catch (errOnLs) {
       // ディレクトリが無かったら作る
       try {
-        fs.mkdirSync(vocabularyDirPath);
-        dictionaryFileList = fs.readdirSync(vocabularyDirPath);
+        fs.mkdirSync(this.libraryDirPath);
+        dictionaryFileList = fs.readdirSync(this.libraryDirPath);
       } catch (errOnCreate) {
         dictionaryFileList = [];
         fatalErrorAndExit(errOnCreate as Error);
@@ -78,15 +77,13 @@ export class Vocabulary {
     });
   }
 
-  initVocabulary = async (): Promise<void> => {
-    const vocabularyDirPath = path.join(app.getPath('userData'), 'vocabulary');
-
+  initLibrary = async (): Promise<void> => {
     const dictionaryFileList = this.getDictionaryFileList();
 
     const dictionaryPromiseList: Promise<Dictionary>[] = [];
 
     dictionaryFileList.forEach(dictionaryFileName => {
-      const filePath = path.join(vocabularyDirPath, dictionaryFileName);
+      const filePath = path.join(this.libraryDirPath, dictionaryFileName);
 
       dictionaryPromiseList.push(this.initDictionary(filePath));
     });
@@ -106,9 +103,7 @@ export class Vocabulary {
     });
   }
 
-  reloadVocabulary = async (): Promise<void> => {
-    const vocabularyDirPath = path.join(app.getPath('userData'), 'vocabulary');
-
+  reloadLibrary = async (): Promise<void> => {
     const dictionaryFileList = this.getDictionaryFileList();
     const oldMap = this.dictionaryMap;
 
@@ -122,7 +117,7 @@ export class Vocabulary {
       if (oldMap.has(dictionaryFileName)) {
         this.dictionaryMap.set(dictionaryFileName, oldMap.get(dictionaryFileName) as Dictionary);
       } else {
-        const filePath = path.join(vocabularyDirPath, dictionaryFileName);
+        const filePath = path.join(this.libraryDirPath, dictionaryFileName);
         dictionaryPromiseList.push(this.initDictionary(filePath));
       }
     });
@@ -182,7 +177,7 @@ export class Vocabulary {
         const viewString = line.split(':')[0];
         const hiraganaString = line.split(':')[1].split(',');
 
-        if (isValidVocabulary(viewString, hiraganaString)) {
+        if (isValidVocabularyEntry(viewString, hiraganaString)) {
           vocabularyList.push([viewString, hiraganaString]);
         } else {
           errorLineList.push(i + 1);

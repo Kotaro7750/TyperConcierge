@@ -30,6 +30,13 @@ type Dictionary = DictionaryInfo & {
   content: DictionaryContent,
 }
 
+type Library = {
+  availableDictionaryList: DictionaryInfo[],
+  usedDictionaryFileNameList: string[],
+  vocabularyEntryList: VocabularyEntry[],
+}
+
+type LibraryOperatorActionType = { type: 'use', dictionaryName: string } | { type: 'disuse', dictionaryName: string } | { type: 'load' } | { type: 'constructVocabulary' };
 
 // TODO 記号はもっとあるよね
 type PrintableASCII =

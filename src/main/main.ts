@@ -1,6 +1,6 @@
 import path from 'path';
-import { BrowserWindow, app, ipcMain, Tray } from 'electron';
-import { Vocabulary } from './vocabulary';
+import { BrowserWindow, app, ipcMain } from 'electron';
+import { LibraryManager } from './libraryManager';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -34,10 +34,10 @@ const createWindow = () => {
   mainWindow.loadFile('build/renderer/index.html');
 };
 
-let vocabulary: Vocabulary;
+let libraryManager: LibraryManager;
 
 app.whenReady().then(async () => {
-  vocabulary = await Vocabulary.init();
+  libraryManager = await LibraryManager.init();
 
   createWindow();
 
@@ -58,10 +58,10 @@ app.once('window-all-closed', () => {
 
 
 ipcMain.handle('getDictionaryList', async (_) => {
-  await vocabulary.reloadVocabulary();
-  return vocabulary.getDictionaryList();
+  await libraryManager.reloadLibrary();
+  return libraryManager.getDictionaryList();
 });
 
 ipcMain.handle('getVocabularyEntryList', (_, usedDictionaryNameList) => {
-  return vocabulary.getVocabularyEntryList(usedDictionaryNameList);
+  return libraryManager.getVocabularyEntryList(usedDictionaryNameList);
 });
