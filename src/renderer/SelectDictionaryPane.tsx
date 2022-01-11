@@ -18,8 +18,20 @@ export function SelectDictionaryPane(props: { availableDictionaryList: Dictionar
   const DISABLED_DICTIONARY_TOOLTIP_TEXT = '辞書に含まれる語彙がありません';
   const DICTIONARY_CONTAIN_ERROR_TOOLTIP_TEXT_BASE = '以下の行に無効な語彙があります';
 
+  const sortedAvailableDictionaryList = Array.from(props.availableDictionaryList).sort((a, b) => {
+    const aName = a.name;
+    const bName = b.name;
+    if (aName < bName) {
+      return -1;
+    } else if (aName > bName) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+
   // 辞書リストのそれぞれの項目を構築
-  props.availableDictionaryList.forEach((dictionaryInfo: DictionaryInfo, i: number) => {
+  sortedAvailableDictionaryList.forEach((dictionaryInfo: DictionaryInfo, i: number) => {
     const dictionaryFileName = concatDictionaryFileName(dictionaryInfo);
     const dictionaryName = dictionaryInfo.name;
     const enable = dictionaryInfo.enable;
