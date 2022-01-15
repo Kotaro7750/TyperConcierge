@@ -1,5 +1,5 @@
 import path from 'path';
-import { BrowserWindow, app, ipcMain } from 'electron';
+import { BrowserWindow, app, ipcMain, Menu, shell } from 'electron';
 import { LibraryManager } from './libraryManager';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -55,6 +55,23 @@ app.once('window-all-closed', () => {
     app.quit()
   }
 });
+
+const menuTemplate: (Electron.MenuItemConstructorOptions | Electron.MenuItem)[] = [
+  {
+    label: '語彙',
+    submenu: [
+      {
+        label: '語彙フォルダを開く',
+        click() {
+          shell.showItemInFolder(libraryManager.libraryDirPath);
+        }
+      }
+    ]
+  }
+];
+
+const menu = Menu.buildFromTemplate(menuTemplate);
+Menu.setApplicationMenu(menu);
 
 
 ipcMain.handle('getDictionaryList', async (_) => {
