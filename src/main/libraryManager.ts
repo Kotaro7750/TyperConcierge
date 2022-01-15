@@ -206,7 +206,7 @@ export class LibraryManager {
     return [vocabularyList, errorLineList];
   }
 
-  parseSentenceDictionary = (content: string): [DictionaryContent, number[]] => {
+  parseSentenceDictionary = (_: string): [DictionaryContent, number[]] => {
     const vocabularyList: DictionaryContent = [];
     const errorLineList: number[] = [];
 

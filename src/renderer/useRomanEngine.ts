@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { deepCopyChunk, reduceCandidate, charInRomanElementAtPosition, inCandidateIndexAtPosition, parseSentence, constructChunkList, selectEffectiveRomanChunkLength, calcLapLastIndexOfChunk } from './RomanEngineUtility';
+import { deepCopyChunk, reduceCandidate, charInRomanElementAtPosition, inCandidateIndexAtPosition, selectEffectiveRomanChunkLength, calcLapLastIndexOfChunk } from './RomanEngineUtility';
 
 // 表示用の情報を構築する
 function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunkList: ConfirmedChunk[], inflightChunk: InflightChunk): SentenceViewPaneInformation {
@@ -226,26 +226,25 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
   };
 }
 
-export function useRomanEngine(initSentence: string): [SentenceViewPaneInformation, (c: PrintableASCII, elapsedTime: number) => void] {
+export function useRomanEngine(queryInfo: QueryInfo): [SentenceViewPaneInformation, (c: PrintableASCII, elapsedTime: number) => void] {
   const [finished, setFinished] = useState<boolean>(false);
-  const [sentence] = useState<string>(initSentence);
-  const memorizedChunkList = useMemo(() => constructChunkList(parseSentence(sentence)), [sentence]);
+  const chunkList = queryInfo.chunkList;
 
   let confirmedChunkList = useRef<ConfirmedChunk[]>([]);
 
   // 現在入力中のチャンク
   let inflightChunk = useRef<InflightChunk>({
-    ...deepCopyChunk(memorizedChunkList[0]),
+    ...deepCopyChunk(chunkList[0]),
     id: 0,
-    minCandidateStr: reduceCandidate(memorizedChunkList[0].romanCandidateList[0].romanElemList),
+    minCandidateStr: reduceCandidate(chunkList[0].romanCandidateList[0].romanElemList),
     // 候補数だけの0を要素とした配列
-    cursorPositionList: memorizedChunkList[0].romanCandidateList.map(_ => 0),
+    cursorPositionList: chunkList[0].romanCandidateList.map(_ => 0),
     keyStrokeList: []
   });
 
   // あまりきれいではないが変更が起こった時のタイムスタンプの値を用いてメモ化を行う
   let timeStamp = useRef<number>(new Date().getTime());
-  const sentenceViewPaneInformation = useMemo(() => constructSentenceViewPaneInformation(memorizedChunkList, confirmedChunkList.current, inflightChunk.current), [timeStamp.current, sentence]);
+  const sentenceViewPaneInformation = useMemo(() => constructSentenceViewPaneInformation(chunkList, confirmedChunkList.current, inflightChunk.current), [timeStamp.current]);
 
   // 現在入力中のチャンクに対して文字を入力して情報を更新する
   // もしチャンクが打ち終わりかつ最後のチャンクだった場合にはtrueを返す
@@ -304,9 +303,9 @@ export function useRomanEngine(initSentence: string): [SentenceViewPaneInformati
         const strictNextChunkHeader = romanCandidate.nextChunkHeadConstraint;
 
         // inflightChunkを更新する
-        if (inflightChunk.current.id != memorizedChunkList.length - 1) {
+        if (inflightChunk.current.id != chunkList.length - 1) {
           const nextInflightChunkId = inflightChunk.current.id + 1;
-          const nextInflightChunk = deepCopyChunk(memorizedChunkList[nextInflightChunkId]);
+          const nextInflightChunk = deepCopyChunk(chunkList[nextInflightChunkId]);
 
           // 枝刈りする前にやらないと全体でみた最短にならないことがある
           // Ex. 「たっっち」を「tal」と入力していたときに「tatltuti」が最短とされてしまう

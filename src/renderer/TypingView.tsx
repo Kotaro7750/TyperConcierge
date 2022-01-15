@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import _, { useEffect, useContext } from 'react';
 import { TimerPane } from './TimerPane';
 import { RomanPane } from './RomanPane';
 import { QueryPane } from './QueryPane';
@@ -6,11 +6,20 @@ import { QueryPane } from './QueryPane';
 import { GameStateContext } from './App';
 import { TypingResultContext } from './App';
 
+import { useQueryConstructor } from './useQueryConstructor';
 import { useRomanEngine } from './useRomanEngine';
 import { useMilliSecondTimer } from './useMilliSecondTimer';
 
-export function TypingView(props: { queryInformation: QueryInformation }) {
-  const [sentenceViewPaneInformation, handleInput] = useRomanEngine(props.queryInformation.hiraganaString);
+export function TypingView(props: { library: Library }) {
+  const querySource: QuerySource = {
+    vocabularyEntryList: props.library.vocabularyEntryList,
+    romanCountThreshold: 200,
+    // FIXME ここは切り替えられるようにする
+    type: 'word',
+  };
+
+  const queryInfo: QueryInfo = useQueryConstructor(querySource);
+  const [sentenceViewPaneInformation, handleInput] = useRomanEngine(queryInfo);
   const [elapsedTime, startTimer, stopTimer, cancelTimer] = useMilliSecondTimer();
 
   const gameStateContext = useContext(GameStateContext);
@@ -76,7 +85,7 @@ export function TypingView(props: { queryInformation: QueryInformation }) {
 
       <div className='row mt-3 mx-0'>
         <div className='col-12'>
-          <QueryPane input={props.queryInformation} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />
+          <QueryPane input={queryInfo} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />
         </div>
       </div>
 

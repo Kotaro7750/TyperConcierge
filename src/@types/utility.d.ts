@@ -97,12 +97,19 @@ interface TypingResultContext {
   setTypingResult: React.Dispatch<React.SetStateAction<TypingResult>>,
 }
 
-interface QueryInformation {
+type QuerySource = {
+  vocabularyEntryList: VocabularyEntry[],
+  romanCountThreshold: number,
+  type: 'word' | 'sentence',
+}
+
+interface QueryInfo {
   viewString: string,
   hiraganaString: string,
   // ひらがな文のそれぞれの文字が表示用文のどの位置に対応するか
   // Ex. 「漢字」と「かんじ」なら「か」と「ん」が「漢」，「じ」が「字」なので[0,0,1]となる
-  viewStringPositionOfHiraganaString: number[],
+  viewStringPosOfHiraganaString: number[],
+  chunkList: Chunk[],
 }
 
 interface RomanPaneInformation {

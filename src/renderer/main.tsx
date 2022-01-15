@@ -7,8 +7,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import { Tooltip } from 'bootstrap';
 
 // ツールチップの初期化
-let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-let tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+tooltipTriggerList.map(function(tooltipTriggerEl) {
   return new Tooltip(tooltipTriggerEl)
 })
 

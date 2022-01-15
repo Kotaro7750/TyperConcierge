@@ -1,4 +1,4 @@
-import React from 'react';
+import _ from 'react';
 import { constructStyledStringElement } from './utility';
 
 function LapLine(props: { styledStringElementList: JSX.Element[], lapTimeMilliSecond: number }): JSX.Element {

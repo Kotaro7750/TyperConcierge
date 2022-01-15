@@ -1,9 +1,7 @@
-import React, { useState, useMemo, createContext } from 'react';
+import _, { useState, createContext } from 'react';
 import { TypingView } from './TypingView';
 import { ResultView } from './ResultView';
 import { ModeSelectView } from './ModeSelectView';
-
-import { constructQueryInformation } from './utility';
 
 import { useVocabulary } from './useVocabulary';
 
@@ -29,8 +27,6 @@ export function App() {
   // TODO ここらへんuseReduceが使えそう
   const [library, libraryOperator] = useVocabulary();
 
-  const queryInformation: QueryInformation = useMemo(() => constructQueryInformation(library.vocabularyEntryList, 100), [library.vocabularyEntryList]);
-
   return (
     <div className='container-fluid'>
       <GameStateContext.Provider value={{ gameState: gameState, setGameState: setGameState }}>
@@ -40,7 +36,7 @@ export function App() {
               <ModeSelectView />
             </VocabularyContext.Provider>
 
-            : gameState === 'Started' ? <TypingResultContext.Provider value={{ typingResult: typingResult, setTypingResult: setTypingResult }}><TypingView queryInformation={queryInformation} /></TypingResultContext.Provider>
+            : gameState === 'Started' ? <TypingResultContext.Provider value={{ typingResult: typingResult, setTypingResult: setTypingResult }}><TypingView library={library} /></TypingResultContext.Provider>
 
               : <ResultView result={typingResult} />
         }

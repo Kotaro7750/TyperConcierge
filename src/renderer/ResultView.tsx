@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useContext } from 'react';
+import _, { useMemo, useEffect, useContext } from 'react';
 import { ResultSummaryPane } from './ResultSummaryPane';
 
 import { GameStateContext } from './App';

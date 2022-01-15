@@ -48,7 +48,7 @@ export function inCandidateIndexAtPosition(romanElemList: string[], position: nu
 
 export function selectEffectiveRomanChunkLength(minCandidateLength: number, actualCandidateLength: number): number {
   // TODO 最短なのか実際に打った文字数なのかを変えられるようにする
-  return minCandidateLength;
+  return true ? minCandidateLength : actualCandidateLength;
 }
 
 // チャンク内にラップ区切りがあった場合に表示用ローマ字系列の何番目がラップ末尾なのかを計算する

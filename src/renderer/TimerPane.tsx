@@ -1,4 +1,4 @@
-import React from 'react';
+import _ from 'react';
 
 export function TimerPane(props: { elapsedTime: number }): JSX.Element {
   const elapsedTimeS = props.elapsedTime / 1000;

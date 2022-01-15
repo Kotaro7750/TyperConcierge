@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import _, { useState } from 'react';
 
 export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): JSX.Element {
   const [isWordCountIdeal, setIsWordCountIdeal] = useState<boolean>(false);

@@ -1,12 +1,12 @@
-import React from 'react';
+import _ from 'react';
 import { constructStyledStringElement } from './utility';
 
-export function QueryPane(props: { input: QueryInformation, information: QuerySentencePaneInformation }): JSX.Element {
+export function QueryPane(props: { input: QueryInfo, information: QuerySentencePaneInformation }): JSX.Element {
   const queryInformation = props.input;
   const querySentencePaneInformation = props.information;
 
-  const viewStringCursorPosition = querySentencePaneInformation.hiraganaCursorPosition.map(i => queryInformation.viewStringPositionOfHiraganaString[i]);
-  const viewStringMissedPosition = querySentencePaneInformation.missedPosition.map(position => queryInformation.viewStringPositionOfHiraganaString[position]);
+  const viewStringCursorPosition = querySentencePaneInformation.hiraganaCursorPosition.map(i => queryInformation.viewStringPosOfHiraganaString[i]);
+  const viewStringMissedPosition = querySentencePaneInformation.missedPosition.map(position => queryInformation.viewStringPosOfHiraganaString[position]);
 
   return (
     <div className='row'>

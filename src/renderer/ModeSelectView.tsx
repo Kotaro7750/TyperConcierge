@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import _, { useState, useEffect, useContext, useRef } from 'react';
 
 import { StartSignal } from './StartSignal';
 import { SelectDictionaryPane } from './SelectDictionaryPane';
