@@ -185,7 +185,6 @@ export class LibraryManager {
     const lineRegExp = /^[^:]+:[^,]+(,[^,])*/;
 
     content.split(/\r\n|\n/).forEach((line, i) => {
-      // TODO マッチしないものはユーザーに伝える
       if (lineRegExp.test(line)) {
         const viewString = line.split(':')[0];
         const hiraganaString = line.split(':')[1].split(',');
@@ -206,9 +205,53 @@ export class LibraryManager {
     return [vocabularyList, errorLineList];
   }
 
-  parseSentenceDictionary = (_: string): [DictionaryContent, number[]] => {
+  parseSentenceDictionary = (content: string): [DictionaryContent, number[]] => {
     const vocabularyList: DictionaryContent = [];
     const errorLineList: number[] = [];
+
+    // 空行があると奇数行と偶数行が入れ替わるのでなくす
+    const contentLineList = content.split(/\r\n|\n/).filter(line => line !== '');
+
+    for (let i = 0; i < contentLineList.length; i += 2) {
+      const viewStr = contentLineList[i];
+      const hiraganaStr = contentLineList[i + 1] ? contentLineList[i + 1] : '';
+
+      // 読みの区切り文字はカンマだが文章中にカンマが出てきた場合にも対処する
+      // Ex. 「はい,いいえ」という表示文には「は,い,,,い,い,え」という読みが対応する
+      // 「,,,」の１つ目・３つ目のカンマは区切り文字だが２つ目は文字としてのカンマ
+      const hiraganaElementList: string[] = [];
+      let isPrevDelimiterComma = false;
+      let tmpHiragana = '';
+
+      for (let j = 0; j < hiraganaStr.length; ++j) {
+        // 直前が区切り文字としてのカンマだった場合には必ず文字列に追加する
+        if (isPrevDelimiterComma) {
+          tmpHiragana += hiraganaStr[j];
+          isPrevDelimiterComma = false;
+
+        } else {
+          // 直前が区切りではない場合にはカンマは区切り文字と考える
+          if (hiraganaStr[j] == ',') {
+            isPrevDelimiterComma = true;
+            hiraganaElementList.push(tmpHiragana);
+            tmpHiragana = '';
+
+          } else {
+            tmpHiragana += hiraganaStr[j];
+          }
+        }
+      }
+
+      // 最後の読みを追加する
+      hiraganaElementList.push(tmpHiragana);
+
+      if (isValidVocabularyEntry(viewStr, hiraganaElementList)) {
+        vocabularyList.push([viewStr, hiraganaElementList]);
+      } else {
+        // 無効な文書があった場合には奇数行（表示文）の行をエラーとする
+        errorLineList.push(i + 1);
+      }
+    }
 
     return [vocabularyList, errorLineList];
   }
