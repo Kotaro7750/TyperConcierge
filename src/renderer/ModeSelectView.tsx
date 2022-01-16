@@ -1,5 +1,7 @@
 import _, { useState, useEffect, useContext, useRef } from 'react';
 
+import { WORD_DICTIONARY_EXTENSION, SENTENCE_DICTIONARY_EXTENSION } from '../commonUtility';
+
 import { StartSignal } from './StartSignal';
 import { SelectDictionaryPane } from './SelectDictionaryPane';
 
@@ -68,6 +70,9 @@ export function ModeSelectView() {
     return () => { removeEventListener('keydown', handleKeyDown) }
   });
 
+  const WORD_TOOLTIP_TEXT = `辞書（${WORD_DICTIONARY_EXTENSION}形式のファイル）に含まれる単語からいくつかランダムに選びます。\n文章との併用はできません。`;
+  const SENTENCE_TOOLTIP_TEXT =`辞書（${SENTENCE_DICTIONARY_EXTENSION}形式のファイル）に含まれる文章からランダムに選びます。\n単語との併用はできません。` 
+
   return (
     <div className='w-100 vh-100 d-flex flex-row justify-content-center'>
       {
@@ -77,14 +82,30 @@ export function ModeSelectView() {
           (
             <div className='w-50 d-flex flex-column justify-content-center'>
               <div className='row mb-1'>
-                <div className='p-0 d-flex justify-content-end'>
-                  <button className='btn btn-sm btn-outline-success' onClick={() => { libraryOperator({ type: 'load' }); }}><i className="bi bi-arrow-clockwise"></i></button>
+                <div className='p-0 d-flex w-100'>
+
+                  <div className='p-0 d-flex bg-white'>
+                    <div className='btn-group'>
+                      <label className='btn btn-outline-secondary text-dark border border-secondary border-2' data-bs-toggle='tooltip' data-bs-placement='top' title={WORD_TOOLTIP_TEXT}>
+                        単語<input type='radio' className='btn-check' />
+                      </label>
+
+                      <label className='btn btn-outline-secondary text-dark border border-secondary border-2 border-start-0' data-bs-toggle='tooltip' data-bs-placement='top' title={SENTENCE_TOOLTIP_TEXT}>
+                        文章<input type='radio' className='btn-check' />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className='p-0 pt-2 d-flex justify-content-end ms-auto'>
+                    <button className='btn btn-sm btn-outline-success' onClick={() => { libraryOperator({ type: 'load' }); }}><i className='bi bi-arrow-clockwise'></i></button>
+                  </div>
                 </div>
               </div>
 
               <div className='h-25 row p-2 border border-secondary rounded-3 border-2 bg-white'>
                 <SelectDictionaryPane availableDictionaryList={library.availableDictionaryList} usedDictionaryList={library.usedDictionaryFileNameList} libraryOperator={libraryOperator} />
               </div>
+
               <div className='row d-flex justify-content-center mt-3'>
                 <div className='col-6 d-flex justify-content-center'>
                   <button onClick={confirmReady} className='btn btn-lg btn-primary' disabled={!canStart()}>Start</button>
