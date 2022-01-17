@@ -82,10 +82,8 @@ const menu = Menu.buildFromTemplate(
         {
           label: 'Open Vocabulary Folder',
           click: () => {
-            // showItemInFolderは指定したファイル自体を表示するものなのでディレクトリを指定すると１つ上のディレクトリを開いてしまう
-            // そのためダミーのファイルを指定してやると中に入ってくれる
-            // あってもなくても特にエラーは起こらない
-            shell.showItemInFolder(path.join(libraryManager.libraryDirPath, 'dummy'));
+            // showItemInFolderだと何故かOSXで動かなかったこちらにする
+            shell.openPath(libraryManager.libraryDirPath);
           }
         },
         isMac ? { role: 'close' } : { role: 'quit' }
