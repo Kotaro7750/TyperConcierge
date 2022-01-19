@@ -18,11 +18,13 @@ jobs:
         run: npm run build
       - name: package
         run: npm run package:osx
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
             package/*.dmg
