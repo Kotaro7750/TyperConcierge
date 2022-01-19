@@ -1,6 +1,6 @@
 {
   "name": "TyperConcierge",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "cross-platform typewell-like typing application",
   "main": "build/main/main.js",
   "scripts": {
