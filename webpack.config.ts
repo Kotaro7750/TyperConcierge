@@ -64,6 +64,9 @@ const common: Configuration = {
       }
     ]
   },
+  externals: {
+    fsevents: "require('fsevents')"
+  },
 
   watch: isDev,
   devtool: isDev ? 'inline-source-map' : undefined
