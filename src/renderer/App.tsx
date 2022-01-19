@@ -9,8 +9,9 @@ import { useVocabulary } from './useVocabulary';
 export const VocabularyContext = createContext<{ library: Library, libraryOperator: (action: LibraryOperatorActionType) => void }>(
   {
     library: {
-      availableDictionaryList: [],
-      usedDictionaryFileNameList: [],
+      availableDictionaryList: { word: [], sentence: [] },
+      usedDictionaryFileNameList: { word: [], sentence: [] },
+      usedVocabularyType: 'word',
       vocabularyEntryList: [],
     },
     libraryOperator: () => { },
@@ -24,7 +25,6 @@ export function App() {
   const [gameState, setGameState] = useState<GameState>('ModeSelect');
   const [typingResult, setTypingResult] = useState<TypingResult>({} as TypingResult);
 
-  // TODO ここらへんuseReduceが使えそう
   const [library, libraryOperator] = useVocabulary();
 
   return (

@@ -22,7 +22,8 @@ export function ModeSelectView() {
   const libraryOperator = vocabularyContext.libraryOperator;
 
   const canStart = () => {
-    return library.usedDictionaryFileNameList.length !== 0;
+    const usedDictionaryFileNameList = library.usedVocabularyType == 'word' ? library.usedDictionaryFileNameList.word : library.usedDictionaryFileNameList.sentence;
+    return usedDictionaryFileNameList.length !== 0;
   }
 
   const confirmReady = () => {
@@ -73,6 +74,10 @@ export function ModeSelectView() {
   const WORD_TOOLTIP_TEXT = `辞書（${WORD_DICTIONARY_EXTENSION}形式のファイル）に含まれる単語からいくつかランダムに選びます。\n文章との併用はできません。`;
   const SENTENCE_TOOLTIP_TEXT =`辞書（${SENTENCE_DICTIONARY_EXTENSION}形式のファイル）に含まれる文章からランダムに選びます。\n単語との併用はできません。` 
 
+  // 現在有効になっている語彙タイプに合わせて辞書リストを変える
+  const effectiveAvailableDictionaryList = library.usedVocabularyType == 'word' ? library.availableDictionaryList.word : library.availableDictionaryList.sentence;
+  const effectiveUsedDictionaryList = library.usedVocabularyType == 'word' ? library.usedDictionaryFileNameList.word : library.usedDictionaryFileNameList.sentence;
+
   return (
     <div className='w-100 vh-100 d-flex flex-row justify-content-center'>
       {
@@ -86,12 +91,12 @@ export function ModeSelectView() {
 
                   <div className='p-0 d-flex bg-white'>
                     <div className='btn-group'>
-                      <label className='btn btn-outline-secondary text-dark border border-secondary border-2' data-bs-toggle='tooltip' data-bs-placement='top' title={WORD_TOOLTIP_TEXT}>
-                        単語<input type='radio' className='btn-check' />
+                      <label className={`btn ${library.usedVocabularyType == 'word' ? 'btn-secondary' : 'btn-outline-secondary'} text-dark border border-secondary border-2`} data-bs-toggle='tooltip' data-bs-placement='top' title={WORD_TOOLTIP_TEXT}>
+                        単語<input type='radio' className='btn-check' onClick={() => libraryOperator({type:'type', vocabularyType:'word'})}/>
                       </label>
 
-                      <label className='btn btn-outline-secondary text-dark border border-secondary border-2 border-start-0' data-bs-toggle='tooltip' data-bs-placement='top' title={SENTENCE_TOOLTIP_TEXT}>
-                        文章<input type='radio' className='btn-check' />
+                      <label className={`btn ${library.usedVocabularyType == 'sentence' ? 'btn-secondary' : 'btn-outline-secondary'} text-dark border border-secondary border-2 border-start-0`} data-bs-toggle='tooltip' data-bs-placement='top' title={SENTENCE_TOOLTIP_TEXT}>
+                        文章<input type='radio' className='btn-check' onClick={() => libraryOperator({type:'type', vocabularyType:'sentence'})}/>
                       </label>
                     </div>
                   </div>
@@ -103,7 +108,7 @@ export function ModeSelectView() {
               </div>
 
               <div className='h-25 row p-2 border border-secondary rounded-3 border-2 bg-white'>
-                <SelectDictionaryPane availableDictionaryList={library.availableDictionaryList} usedDictionaryList={library.usedDictionaryFileNameList} libraryOperator={libraryOperator} />
+                <SelectDictionaryPane availableDictionaryList={effectiveAvailableDictionaryList} usedDictionaryList={effectiveUsedDictionaryList} libraryOperator={libraryOperator} />
               </div>
 
               <div className='row d-flex justify-content-center mt-3'>

@@ -22,8 +22,11 @@ export class LibraryManager {
     return libraryManager;
   }
 
-  getDictionaryList = (): Array<DictionaryInfo> => {
-    const dictionaryInfoList: Array<DictionaryInfo> = [];
+  getDictionaryList = (): CategorizedDictionaryInfoList => {
+    const dictionaryInfoList: CategorizedDictionaryInfoList = {
+      word: [],
+      sentence: []
+    };
 
     for (let dictionaryName of this.dictionaryMap.keys()) {
       const dictionary = this.dictionaryMap.get(dictionaryName) as Dictionary;
@@ -36,7 +39,11 @@ export class LibraryManager {
         enable: dictionary.enable,
       };
 
-      dictionaryInfoList.push(dictionaryInfo);
+      if (dictionary.type == 'word') {
+        dictionaryInfoList.word.push(dictionaryInfo);
+      } else {
+        dictionaryInfoList.sentence.push(dictionaryInfo);
+      }
     }
 
     return dictionaryInfoList;

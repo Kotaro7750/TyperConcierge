@@ -12,17 +12,24 @@ interface GameStateContext {
   setGameState: React.Dispatch<React.SetStateAction<GameState>>,
 }
 
-type Word = [string, string[]];
-type Sentence = [string, string[]];
+type VocabularyType = 'word' | 'sentence';
 
-type VocabularyEntry = Word | Sentence;
+type WordVocabularyEntry = [string, string[]];
+type VocabularyEntrySentence = [string, string[]];
+
+type VocabularyEntry = WordVocabularyEntry | VocabularyEntrySentence;
 
 type DictionaryInfo = {
   name: string,
-  type: 'word' | 'sentence',
+  type: VocabularyType,
   enable: boolean,
   timestamp: number,
   errorLineList: number[],
+}
+
+type CategorizedDictionaryInfoList = {
+  word: DictionaryInfo[],
+  sentence: DictionaryInfo[],
 }
 
 type DictionaryContent = Array<VocabularyEntry>;
@@ -32,12 +39,16 @@ type Dictionary = DictionaryInfo & {
 }
 
 type Library = {
-  availableDictionaryList: DictionaryInfo[],
-  usedDictionaryFileNameList: string[],
+  availableDictionaryList: CategorizedDictionaryInfoList,
+  usedDictionaryFileNameList: {
+    word: string[],
+    sentence: string[],
+  },
+  usedVocabularyType: VocabularyType,
   vocabularyEntryList: VocabularyEntry[],
 }
 
-type LibraryOperatorActionType = { type: 'use', dictionaryName: string } | { type: 'disuse', dictionaryName: string } | { type: 'load' } | { type: 'constructVocabulary' };
+type LibraryOperatorActionType = { type: 'use', dictionaryName: string } | { type: 'disuse', dictionaryName: string } | { type: 'load' } | { type: 'constructVocabulary' } | { type: 'type', vocabularyType: VocabularyType };
 
 // TODO 記号はもっとあるよね
 type PrintableASCII =
@@ -100,7 +111,7 @@ interface TypingResultContext {
 type QuerySource = {
   vocabularyEntryList: VocabularyEntry[],
   romanCountThreshold: number,
-  type: 'word' | 'sentence',
+  type: VocabularyType,
 }
 
 interface QueryInfo {
