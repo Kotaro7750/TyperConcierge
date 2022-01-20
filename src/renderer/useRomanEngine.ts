@@ -283,12 +283,20 @@ export function useRomanEngine(queryInfo: QueryInfo): [SentenceViewPaneInformati
 
     let isFinish = false;
 
+    let hasFinishedCandidate = false;
     // チャンクが終了したときの処理
     // 「っっち」を「ltutti」と打ちたい場合でも最初の「l」を入力した段階で１つ目のチャンクが終了してしまうがこれは仕様とする
-    inflightChunk.current.romanCandidateList.forEach((romanCandidate, i) => {
+    for (let i = 0; i < inflightChunk.current.romanCandidateList.length; ++i) {
+      const romanCandidate = inflightChunk.current.romanCandidateList[i];
 
       // iは0インデックスなので候補の長さとなったとき（１つはみだしたとき）にチャンクが終了したと判定できる
       if (reduceCandidate(romanCandidate.romanElemList).length == inflightChunk.current.cursorPositionList[i]) {
+        // 1つの候補が終了したら即座に確定したとみなす
+        // 通常のチャンクであればそのような候補はないのだが制限されたチャンクで候補が重複していたりした場合には生じうる
+        if (hasFinishedCandidate) {
+          throw new Error(`Some candidate finish simultaneously`);
+        }
+        hasFinishedCandidate = true;
 
         // 確定したチャンクにinflightChunkを追加する
         confirmedChunkList.current.push({
@@ -309,6 +317,7 @@ export function useRomanEngine(queryInfo: QueryInfo): [SentenceViewPaneInformati
 
           // 枝刈りする前にやらないと全体でみた最短にならないことがある
           // Ex. 「たっっち」を「tal」と入力していたときに「tatltuti」が最短とされてしまう
+          // もともとのchunkListが短い順にソートされているので0番目のインデックスに最短のローマ字表現候補が入っている
           const minCandidateString = reduceCandidate(nextInflightChunk.romanCandidateList[0].romanElemList);
 
           // 次のチャンクの先頭が制限されているときには候補を枝刈りする必要がある
@@ -320,7 +329,6 @@ export function useRomanEngine(queryInfo: QueryInfo): [SentenceViewPaneInformati
           inflightChunk.current = {
             id: nextInflightChunkId,
             ...nextInflightChunk,
-            // もともとのmemorizedChunkListが短い順にソートされているので0番目のインデックスに最短のローマ字表現候補が入っている
             minCandidateStr: minCandidateString,
             cursorPositionList: nextInflightChunk.romanCandidateList.map(_ => 0),
             keyStrokeList: [],
@@ -331,7 +339,7 @@ export function useRomanEngine(queryInfo: QueryInfo): [SentenceViewPaneInformati
           isFinish = true;
         }
       }
-    });
+    };
 
     return isFinish;
   }

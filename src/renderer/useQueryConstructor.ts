@@ -1,7 +1,7 @@
-import _, { useMemo } from 'react';
+import _, { useState } from 'react';
 
 import { isValidVocabularyEntry } from '../commonUtility';
-import { parseSentence, constructChunkList, reduceCandidate } from './RomanEngineUtility';
+import { parseSentence, constructChunkList, reduceCandidate, strictRomanCountInplace } from './RomanEngineUtility';
 
 function constructWithWord(vocabularyEntryList: VocabularyEntry[], romanCountThreshold: number): QueryInfo {
   let romanCount = 0;
@@ -52,6 +52,10 @@ function constructWithWord(vocabularyEntryList: VocabularyEntry[], romanCountThr
 
       // このチャンクで閾値を超える場合には追加を終了する
       if (romanCount >= romanCountThreshold) {
+        // 閾値ぴったりでチャンクが終了するようにチャンクを書き換える
+        const strictedChunkLen = chunk.minCandidateStr.length - (romanCount - romanCountThreshold);
+        strictRomanCountInplace(chunk, strictedChunkLen);
+
         break;
       }
     }
@@ -76,12 +80,14 @@ function constructWithWord(vocabularyEntryList: VocabularyEntry[], romanCountThr
 }
 
 export function useQueryConstructor(querySource: QuerySource): QueryInfo {
-  return useMemo(() => {
+  const [queryInfo] = useState<QueryInfo>(() => {
     if (querySource.type === 'word') {
       return constructWithWord(querySource.vocabularyEntryList, querySource.romanCountThreshold);
     } else {
       // FIXME
       throw new Error(`type ${querySource.type} is not supportted`);
     }
-  }, [querySource.vocabularyEntryList, querySource.romanCountThreshold, querySource.type]);
+  });
+
+  return queryInfo;
 }

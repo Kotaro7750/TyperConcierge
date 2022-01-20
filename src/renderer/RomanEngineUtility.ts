@@ -21,6 +21,65 @@ export function deepCopyChunk(src: Chunk): Chunk {
   return dst;
 }
 
+// チャンクをcountStriction字のローマ字数で終わるように制限する
+// 最後のチャンクに対して使うことを想定
+// Ex. 「し」というチャンクには「si」「shi」「ci」という候補があるがこれを1文字に制限すると「s」「c」という候補になる
+export function strictRomanCountInplace(chunk: Chunk, countStriction: number): void {
+  // 制限することでそのチャンクが0文字になったりチャンクの文字数が増えたりしてはいけない
+  if (countStriction == 0 || countStriction > chunk.minCandidateStr.length) {
+    throw new Error(`invalid countStriction ${countStriction} to ${chunk.chunkStr}`);
+  }
+
+  let newMinCandidateStr = chunk.minCandidateStr;
+
+  chunk.romanCandidateList.forEach(romanCandidate => {
+    const oldRomanElemList = romanCandidate.romanElemList;
+
+    // 制約よりも長い候補のみを制限する
+    // 最短の候補よりも長い制約は既に弾かれている
+    if (reduceCandidate(oldRomanElemList).length > countStriction) {
+      const newRomanElemList = [];
+
+      let romanCount = 0;
+      for (let romanElem of oldRomanElemList) {
+        // ちょうどその要素で制限に引っかかるときには途中までで要素を構成する
+        if ((romanCount + romanElem.length) >= countStriction) {
+          const over = (romanCount + romanElem.length) - countStriction;
+          newRomanElemList.push(romanElem.substring(0, romanElem.length - over));
+
+          break;
+        }
+
+        newRomanElemList.push(romanElem);
+        romanCount += romanElem.length;
+      }
+
+      // 制限によって最短が変わる場合もある
+      if (reduceCandidate(newRomanElemList).length < newMinCandidateStr.length) {
+        newMinCandidateStr = reduceCandidate(newRomanElemList);
+      }
+
+      romanCandidate.romanElemList = newRomanElemList;
+
+      // 最後のチャンクに対して使うことを想定しているので次のチャンクへの制約は変更しない
+    }
+  });
+
+  // 候補の縮退をする
+  const reduceCandidateMap = new Map<string, boolean>();
+  chunk.romanCandidateList = chunk.romanCandidateList.filter(romanCandidate => {
+    const reducedStr = reduceCandidate(romanCandidate.romanElemList);
+    if (!reduceCandidateMap.has(reducedStr)) {
+      reduceCandidateMap.set(reducedStr, true);
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  chunk.minCandidateStr = newMinCandidateStr;
+}
+
 // 複数文字に対応した候補を文字列に変換する
 // Ex. ['ki','lyo'] -> 'kilyo'
 export function reduceCandidate(romanElemList: string[]): string {
