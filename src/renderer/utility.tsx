@@ -26,7 +26,7 @@ export function allowSingleN(ncs: string, isLastChunk: boolean): boolean {
 }
 
 // カーソル位置が配列になっているのは複数文字からなるチャンクをまとめて入力する場合があるため
-export function constructStyledStringElement(str: string, cursorPosition: number[], missedPosition: number[]): JSX.Element[] {
+export function constructStyledStringElement(str: string, cursorPosition: number[], missedPosition: number[], lastPos: number): JSX.Element[] {
   const missedPositionDict: { [key: number]: boolean } = {};
   const cursorPositionDict: { [key: number]: boolean } = {};
 
@@ -50,7 +50,7 @@ export function constructStyledStringElement(str: string, cursorPosition: number
       if (str[i] == ' ') {
         cssClass += ' text-decoration-underline';
       }
-    } else if (i < minCursorPosition) {
+    } else if (i < minCursorPosition || lastPos < i) {
       cssClass = 'text-secondary';
     } else if (i in cursorPositionDict) {
       cssClass = 'text-primary';

@@ -92,6 +92,8 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
         // ここでのカーソル位置は必ず末尾+1となっているはずなのでそもそも複数文字とかは考えなくてよく，そのまま配列にしている
         hiraganaCursorPosition: [hiraganaCursorPos],
         missedPosition: hiraganaMissedPos,
+        // ここでのカーソル位置は最後のチャンクの次のチャンク先頭に対応しているので-1する
+        hiraganaLastPos: hiraganaCursorPos - 1,
       },
       romanPaneInformation: {
         romanString: romanStr,
@@ -102,6 +104,9 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
       }
     };
   }
+
+  // この時点では現在入力しているチャンクの1文字目がhiraganaCursorPosとなっているので-1する
+  let hiraganaLastPos = hiraganaCursorPos + inflightChunk.chunkStr.length - 1;
 
   // 現在入力中のチャンクはローマ字表現候補が限られている
   const inflightCandidateString = reduceCandidate(inflightChunk.romanCandidateList[0].romanElemList);
@@ -209,12 +214,14 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
     }
 
     romanStr += reduceCandidate(candidate);
+    hiraganaLastPos += chunk.chunkStr.length;
   }
 
   return {
     querySentencePaneInforamtion: {
       hiraganaCursorPosition: hiraganaCursorPositionArray,
       missedPosition: hiraganaMissedPos,
+      hiraganaLastPos: hiraganaLastPos,
     },
     romanPaneInformation: {
       romanString: romanStr,

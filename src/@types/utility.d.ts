@@ -138,6 +138,9 @@ interface QuerySentencePaneInformation {
   // 複数文字をまとめて入力する場合もあるので配列にしている
   hiraganaCursorPosition: number[],
   missedPosition: number[],
+  // 指定字数に到達したチャンクのひらがな系列の最後の文字の位置
+  // Ex. 「ちゅ」というチャンクの中で指定字数に到達するときには「ゅ」の位置を表す
+  hiraganaLastPos: number,
 }
 
 interface SentenceViewPaneInformation {
