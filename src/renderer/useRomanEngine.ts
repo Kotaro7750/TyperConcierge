@@ -88,15 +88,15 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
   // 入力し終わっていたらこの時点でリターンする
   if (confirmedChunkList.length == chunkList.length) {
     return {
-      querySentencePaneInforamtion: {
+      querySentencePaneInfo: {
         // ここでのカーソル位置は必ず末尾+1となっているはずなのでそもそも複数文字とかは考えなくてよく，そのまま配列にしている
-        hiraganaCursorPosition: [hiraganaCursorPos],
-        missedPosition: hiraganaMissedPos,
+        hiraganaCursorPos: [hiraganaCursorPos],
+        hiraganaMissedPos: hiraganaMissedPos,
         // ここでのカーソル位置は最後のチャンクの次のチャンク先頭に対応しているので-1する
         hiraganaLastPos: hiraganaCursorPos - 1,
       },
-      romanPaneInformation: {
-        romanString: romanStr,
+      romanPaneInfo: {
+        romanStr: romanStr,
         cursorPos: romanCursorPos,
         missedPos: romanMissedPos,
         lapEndPos: lapLastPos,
@@ -170,7 +170,7 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
     }
   });
   // hiraganaCursorPositionを使ってしまうと複数文字まとめてだった場合の最後の文字を打ち終えた瞬間だけ次の文字にもカーソルがあたってしまう
-  const hiraganaCursorPositionArray = isCombinedTwoWordChunk ? [chunkHeaderHiraganaCursorPosition, chunkHeaderHiraganaCursorPosition + 1] : [hiraganaCursorPos];
+  const hiraganaCursorPosArray = isCombinedTwoWordChunk ? [chunkHeaderHiraganaCursorPosition, chunkHeaderHiraganaCursorPosition + 1] : [hiraganaCursorPos];
   chunkId = inflightChunk.id + 1;
 
 
@@ -218,13 +218,13 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
   }
 
   return {
-    querySentencePaneInforamtion: {
-      hiraganaCursorPosition: hiraganaCursorPositionArray,
-      missedPosition: hiraganaMissedPos,
+    querySentencePaneInfo: {
+      hiraganaCursorPos: hiraganaCursorPosArray,
+      hiraganaMissedPos: hiraganaMissedPos,
       hiraganaLastPos: hiraganaLastPos,
     },
-    romanPaneInformation: {
-      romanString: romanStr,
+    romanPaneInfo: {
+      romanStr: romanStr,
       cursorPos: romanCursorPos,
       missedPos: romanMissedPos,
       lapEndPos: lapLastPos,

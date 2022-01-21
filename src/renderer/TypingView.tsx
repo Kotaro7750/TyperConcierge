@@ -19,7 +19,7 @@ export function TypingView(props: { library: Library }) {
   };
 
   const queryInfo: QueryInfo = useQueryConstructor(querySource);
-  const [sentenceViewPaneInformation, handleInput] = useRomanEngine(queryInfo);
+  const [sentenceViewPaneInfo, handleInput] = useRomanEngine(queryInfo);
   const [elapsedTime, startTimer, stopTimer, cancelTimer] = useMilliSecondTimer();
 
   const gameStateContext = useContext(GameStateContext);
@@ -85,13 +85,13 @@ export function TypingView(props: { library: Library }) {
 
       <div className='row mt-3 mx-0'>
         <div className='col-12'>
-          <QueryPane input={queryInfo} information={sentenceViewPaneInformation.querySentencePaneInforamtion} />
+          <QueryPane queryInfo={queryInfo} paneInfo={sentenceViewPaneInfo.querySentencePaneInfo} />
         </div>
       </div>
 
       <div className='row mt-3 mx-0'>
         <div className='col-12'>
-          <RomanPane information={sentenceViewPaneInformation.romanPaneInformation} />
+          <RomanPane paneInfo={sentenceViewPaneInfo.romanPaneInfo} />
         </div>
       </div>
     </>

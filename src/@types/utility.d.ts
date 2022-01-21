@@ -123,8 +123,8 @@ interface QueryInfo {
   chunkList: Chunk[],
 }
 
-interface RomanPaneInformation {
-  romanString: string,
+interface RomanPaneInfo {
+  romanStr: string,
   // ローマ字系列でのカーソル位置・ミス位置
   cursorPos: number,
   missedPos: number[],
@@ -132,20 +132,21 @@ interface RomanPaneInformation {
   lapElapsedTime: number[],
 }
 
-interface QuerySentencePaneInformation {
+interface QuerySentencePaneInfo {
   // ひらがな文自体は既にあるのでわざわざ渡す必要はない
-  // ひらがな文（表示用文ではない）でのカーソル位置・位置
+  // ひらがな文（表示用文ではない）でのカーソル位置
   // 複数文字をまとめて入力する場合もあるので配列にしている
-  hiraganaCursorPosition: number[],
-  missedPosition: number[],
+  hiraganaCursorPos: number[],
+  // ひらがな文（表示用文ではない）でのミス位置
+  hiraganaMissedPos: number[],
   // 指定字数に到達したチャンクのひらがな系列の最後の文字の位置
   // Ex. 「ちゅ」というチャンクの中で指定字数に到達するときには「ゅ」の位置を表す
   hiraganaLastPos: number,
 }
 
 interface SentenceViewPaneInformation {
-  romanPaneInformation: RomanPaneInformation,
-  querySentencePaneInforamtion: QuerySentencePaneInformation,
+  romanPaneInfo: RomanPaneInfo,
+  querySentencePaneInfo: QuerySentencePaneInfo,
 }
 
 interface TypingStatisticsSummary {
