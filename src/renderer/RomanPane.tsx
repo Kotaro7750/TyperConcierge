@@ -7,7 +7,6 @@ import { constructStyledStringElement } from './utility';
 function LapLine(props: { styledStringElementList: JSX.Element[], lapTimeMS: number }): JSX.Element {
   const lapTimeStr = props.lapTimeMS == 0 ? '' : (props.lapTimeMS / 1000).toFixed(3);
 
-  // FIXME 画面を小さくすると折り返されて表示が変になる
   return (
     <div className='row me-0 my-1'>
       <div className='col-11'>

@@ -4,6 +4,17 @@ export function isPrintableASCII(input: string) {
   return /^[\x20-\x7E]*$/.test(input);
 }
 
+// TyperConciergeフォントでは非ASCII文字でもASCII文字と同じ幅になることがある
+export function isMonoWidthFont(c: string) {
+  if (isPrintableASCII(c)) {
+    return true;
+  }else if( c =='’' || c == '”' ){
+    return true;
+  }else {
+    return false;
+  }
+}
+
 // 「ん」のローマ字入力として「n」を使ってもいいかの判定
 export function allowSingleN(ncs: string, isLastChunk: boolean): boolean {
   // 文末・単語末の場合には許容しない
