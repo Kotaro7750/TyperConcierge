@@ -1,4 +1,7 @@
 import _ from 'react';
+
+import { LineWindow } from './LineWindow';
+
 import { constructStyledStringElement } from './utility';
 
 function LapLine(props: { styledStringElementList: JSX.Element[], lapTimeMS: number }): JSX.Element {
@@ -23,10 +26,18 @@ export function RomanPane(props: { paneInfo: RomanPaneInfo }) {
   const romanPaneInfo = props.paneInfo;
   const styledStringElementList = constructStyledStringElement(romanPaneInfo.romanStr, [romanPaneInfo.cursorPos], romanPaneInfo.missedPos, romanPaneInfo.romanStr.length - 1);
 
+  let currentLapIndex = 0;
+
   // 連想検索をしやすくするためにMapを使う
+  // ついでにラップの終了位置とカーソル位置を使って現在何番目のラップかを計算する
   const lapEndPosDict = new Map<number, boolean>();
   romanPaneInfo.lapEndPos.forEach(pos => {
     lapEndPosDict.set(pos, true);
+
+    // ラップの終了位置はソートされていることが前提
+    if (romanPaneInfo.cursorPos > pos) {
+      currentLapIndex++;
+    }
   });
 
   // ラップの情報を基に実際に表示する要素を作る
@@ -44,7 +55,7 @@ export function RomanPane(props: { paneInfo: RomanPaneInfo }) {
       const lapTimeMS = lapIndex > romanPaneInfo.lapElapsedTime.length - 1 ? 0 : romanPaneInfo.lapElapsedTime[lapIndex] - previousLapEndElapsedTime;
 
       previousLapEndElapsedTime = romanPaneInfo.lapElapsedTime[lapIndex];
-      lapLineList.push(<div className='col-12' key={lapIndex}><LapLine styledStringElementList={inLapLineElem} lapTimeMS={lapTimeMS} /></div>);
+      lapLineList.push(<LapLine styledStringElementList={inLapLineElem} lapTimeMS={lapTimeMS} />);
 
       inLapLineElem = [];
     }
@@ -52,12 +63,12 @@ export function RomanPane(props: { paneInfo: RomanPaneInfo }) {
 
   // 飛び出した要素があるなら追加する
   if (inLapLineElem.length != 0) {
-    lapLineList.push(<div className='col-12' key={lapLineList.length}><LapLine styledStringElementList={inLapLineElem} lapTimeMS={0} /></div>);
+    lapLineList.push(<LapLine styledStringElementList={inLapLineElem} lapTimeMS={0} />);
   }
 
   return (
     <div className='row border border-secondary border-3 rounded-3 bg-white vh-40'>
-      {lapLineList}
+      <LineWindow lineList={lapLineList} currentLineIndex={currentLapIndex} windowCapacity={5} />
     </div>
   );
 }
