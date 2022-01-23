@@ -1,5 +1,14 @@
 import _, { useState } from 'react';
 
+function SubContent(props: { title: string, content: string }): JSX.Element {
+  return (
+    <div className='w-100 h-100 d-flex flex-column align-items-center lh-sm'>
+      <div className='text-secondary'>{props.title}</div>
+      <div className='fs-3'>{props.content}</div>
+    </div>
+  );
+}
+
 export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): JSX.Element {
   const [isWordCountIdeal, setIsWordCountIdeal] = useState<boolean>(false);
 
@@ -21,41 +30,37 @@ export function ResultSummaryPane(props: { summary: TypingStatisticsSummary }): 
 
 
   return (
-    <>
-      <div className='form-check form-switch'>
-        <label className='form-check-label'>文字数として最短を使う
-          <input className='form-check-input' type='checkbox' checked={isWordCountIdeal} onChange={() => setIsWordCountIdeal(prev => !prev)} />
-        </label>
-        <i className='bi bi-question-circle' data-bs-toggle='tooltip' data-bs-placement='top' title={WORD_COUNT_IDEAL_HELP} />
-      </div>
+    <div className='d-flex flex-column w-100 h-100'>
 
-      <div className='row'>
-        <div className='col-4 text-center fs-1'>
-          {wpm} 打/分
-        </div>
-
-        <div className='col-4 text-center fs-1'>
-          {accuracy - Math.floor(accuracy) == 0 ? accuracy.toFixed(0) : accuracy.toFixed(2)}%
-        </div>
-
-        <div className='col-4 text-center fs-1'>
-          {eTypingScore}
+      <div className='ms-2'>
+        <div className='form-check form-switch'>
+          <label className='form-check-label'>文字数として最短を使う
+            <input className='form-check-input' type='checkbox' checked={isWordCountIdeal} onChange={() => setIsWordCountIdeal(prev => !prev)} />
+          </label>
+          <i className='bi bi-question-circle' data-bs-toggle='tooltip' data-bs-placement='top' title={WORD_COUNT_IDEAL_HELP} />
         </div>
       </div>
 
-      <div className='row'>
-        <div className='col-4 text-center fs-5'>
-          {wordCount}字
-        </div>
+      <div className='flex-grow-1'>
+        <div className='d-flex flex-column w-100 h-100'>
+          <div className='d-flex flex-column w-100 h-100 justify-content-end align-items-center lh-1'>
+            <div className='text-secondary'>スコア</div>
+            <div className='text-primary display-1'>{eTypingScore}</div>
+          </div>
 
-        <div className='col-4 text-center fs-5'>
-          {summary.missCount}回
-        </div>
-
-        <div className='col-4 text-center fs-5'>
-          {summary.totalTime / 1000}秒
+          <div className='d-flex flex-column w-100 h-100 justify-content-center align-items-center lh-1'>
+            <div className='text-secondary'><i className='bi bi-stopwatch' /></div>
+            <div className='fs-2'>{(summary.totalTime / 1000).toFixed(3)}秒</div>
+          </div>
         </div>
       </div>
-    </>
+
+      <div className='mt-auto d-flex justify-content-between mb-2'>
+        <SubContent title={'WPM'} content={wpm.toString()} />
+        <SubContent title={'正確性'} content={`${accuracy.toFixed(0)}%`} />
+        <SubContent title={'ミスタイプ'} content={`${summary.missCount}回`} />
+        <SubContent title={'字数'} content={`${wordCount}字`} />
+      </div>
+    </div>
   )
 }
