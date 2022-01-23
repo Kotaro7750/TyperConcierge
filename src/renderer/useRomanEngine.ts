@@ -88,6 +88,7 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
   // 入力し終わっていたらこの時点でリターンする
   if (confirmedChunkList.length == chunkList.length) {
     return {
+      progress: 1,
       querySentencePaneInfo: {
         // ここでのカーソル位置は必ず末尾+1となっているはずなのでそもそも複数文字とかは考えなくてよく，そのまま配列にしている
         hiraganaCursorPos: [hiraganaCursorPos],
@@ -218,6 +219,7 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
   }
 
   return {
+    progress: romanCursorPos / romanStr.length,
     querySentencePaneInfo: {
       hiraganaCursorPos: hiraganaCursorPosArray,
       hiraganaMissedPos: hiraganaMissedPos,

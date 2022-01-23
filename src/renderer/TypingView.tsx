@@ -75,10 +75,19 @@ export function TypingView(props: { library: Library }) {
     return () => { removeEventListener('typingFinish', onTypingFinish) }
   });
 
+  const progressPercentage = sentenceViewPaneInfo.progress * 100;
+
   return (
     <>
       <div className='row'>
-        <div className='col-3 offset-9'>
+        <div className='col-4 d-flex'>
+          <div className='progress align-self-center h-50 w-100'>
+            <div className='progress-bar progress-bar-striped progress-bar-animated bg-primary' role='progressbar' style={{ width: `${progressPercentage}%` }} aria-valuenow={progressPercentage} aria-valuemin={0} aria-valuemax={100}>
+              {progressPercentage.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+        <div className='col-3 offset-5'>
           <TimerPane elapsedTime={elapsedTime} />
         </div>
       </div>

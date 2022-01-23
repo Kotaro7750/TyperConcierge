@@ -145,6 +145,8 @@ interface QuerySentencePaneInfo {
 }
 
 interface SentenceViewPaneInformation {
+  // 0-1に正規化された進捗
+  progress: number,
   romanPaneInfo: RomanPaneInfo,
   querySentencePaneInfo: QuerySentencePaneInfo,
 }
