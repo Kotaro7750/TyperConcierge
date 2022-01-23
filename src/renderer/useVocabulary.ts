@@ -3,7 +3,9 @@ import { concatDictionaryFileName } from '../commonUtility';
 
 import { WORD_DICTIONARY_EXTENSION, SENTENCE_DICTIONARY_EXTENSION } from '../commonUtility';
 
-type LibraryReducerActionType = { type: 'use', dictionaryName: string } | { type: 'disuse', dictionaryName: string } | { type: 'load', availableDictionaryList: CategorizedDictionaryInfoList } | { type: 'vocabulary', vocabularyEntryList: VocabularyEntry[] } | { type: 'type', vocabularyType: VocabularyType };
+import { LAP_LENGTH } from './useRomanEngine';
+
+type LibraryReducerActionType = { type: 'use', dictionaryName: string } | { type: 'disuse', dictionaryName: string } | { type: 'load', availableDictionaryList: CategorizedDictionaryInfoList } | { type: 'vocabulary', vocabularyEntryList: VocabularyEntry[] } | { type: 'type', vocabularyType: VocabularyType } | { type: 'romanCountThreshold', romanCountThreshold: number };
 
 export function useVocabulary(): [Library, (action: LibraryOperatorActionType) => void] {
 
@@ -44,6 +46,7 @@ export function useVocabulary(): [Library, (action: LibraryOperatorActionType) =
           usedDictionaryFileNameList: addedUsedDictionaryFileNameList,
           usedVocabularyType: state.usedVocabularyType,
           vocabularyEntryList: state.vocabularyEntryList,
+          romanCountThreshold: state.romanCountThreshold,
         };
 
       // 現在有効になっている辞書タイプで利用可能な辞書から追加する
@@ -66,6 +69,7 @@ export function useVocabulary(): [Library, (action: LibraryOperatorActionType) =
           usedDictionaryFileNameList: deletedUsedDictionaryFileNameList,
           usedVocabularyType: state.usedVocabularyType,
           vocabularyEntryList: state.vocabularyEntryList,
+          romanCountThreshold: state.romanCountThreshold,
         };
 
       case 'load':
@@ -80,6 +84,7 @@ export function useVocabulary(): [Library, (action: LibraryOperatorActionType) =
           },
           usedVocabularyType: state.usedVocabularyType,
           vocabularyEntryList: state.vocabularyEntryList,
+          romanCountThreshold: state.romanCountThreshold,
         };
       case 'type':
         return {
@@ -87,13 +92,23 @@ export function useVocabulary(): [Library, (action: LibraryOperatorActionType) =
           usedDictionaryFileNameList: state.usedDictionaryFileNameList,
           usedVocabularyType: action.vocabularyType,
           vocabularyEntryList: state.vocabularyEntryList,
-        }
+          romanCountThreshold: state.romanCountThreshold,
+        };
       case 'vocabulary':
         return {
           availableDictionaryList: state.availableDictionaryList,
           usedDictionaryFileNameList: state.usedDictionaryFileNameList,
           usedVocabularyType: state.usedVocabularyType,
           vocabularyEntryList: action.vocabularyEntryList,
+          romanCountThreshold: state.romanCountThreshold,
+        };
+      case 'romanCountThreshold':
+        return {
+          availableDictionaryList: state.availableDictionaryList,
+          usedDictionaryFileNameList: state.usedDictionaryFileNameList,
+          usedVocabularyType: state.usedVocabularyType,
+          vocabularyEntryList: state.vocabularyEntryList,
+          romanCountThreshold: action.romanCountThreshold,
         };
     }
   }
@@ -102,7 +117,8 @@ export function useVocabulary(): [Library, (action: LibraryOperatorActionType) =
     availableDictionaryList: { word: [], sentence: [] },
     usedDictionaryFileNameList: { word: [], sentence: [] },
     usedVocabularyType: 'word',
-    vocabularyEntryList: []
+    vocabularyEntryList: [],
+    romanCountThreshold: LAP_LENGTH * 4,
   });
 
   const loadAvailableDictionaryList = () => {
@@ -135,6 +151,9 @@ export function useVocabulary(): [Library, (action: LibraryOperatorActionType) =
         break;
       case 'constructVocabulary':
         updateVocabulary();
+        break;
+      case 'romanCountThreshold':
+        dispatchLibrary({ type: 'romanCountThreshold', romanCountThreshold: action.romanCountThreshold });
         break;
     }
   }

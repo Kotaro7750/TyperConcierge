@@ -13,7 +13,7 @@ import { useMilliSecondTimer } from './useMilliSecondTimer';
 export function TypingView(props: { library: Library }) {
   const querySource: QuerySource = {
     vocabularyEntryList: props.library.vocabularyEntryList,
-    romanCountThreshold: 200,
+    romanCountThreshold: props.library.romanCountThreshold,
     // FIXME ここは切り替えられるようにする
     type: 'word',
   };

@@ -1,6 +1,10 @@
 import { useState, useMemo, useRef } from 'react';
 import { deepCopyChunk, reduceCandidate, charInRomanElementAtPosition, inCandidateIndexAtPosition, selectEffectiveRomanChunkLength, calcLapLastIndexOfChunk } from './RomanEngineUtility';
 
+// もし1チャンク内で２つ以上ラップの切れ目があると上手く動かないので設定値に注意
+// TODO ここはユーザー設定で変えられるようにする？でもそうすると記録の整合性がなくなる
+export const LAP_LENGTH = 50;
+
 // 表示用の情報を構築する
 function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunkList: ConfirmedChunk[], inflightChunk: InflightChunk): SentenceViewPaneInformation {
   let chunkId = 0;
@@ -8,10 +12,6 @@ function constructSentenceViewPaneInformation(chunkList: Chunk[], confirmedChunk
   let romanStr: string = '';
   let romanMissedPos: number[] = [];
   let romanCursorPos = 0;
-
-  // もし1チャンク内で２つ以上ラップの切れ目があると上手く動かないので設定値に注意
-  // TODO ここはユーザー設定で変えられるようにする？でもそうすると記録の整合性がなくなる
-  const LAP_LENGTH = 50;
 
   let inLapRomanCount = 0;
   const lapLastPos = [];

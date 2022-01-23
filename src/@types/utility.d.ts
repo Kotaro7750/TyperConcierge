@@ -46,9 +46,10 @@ type Library = {
   },
   usedVocabularyType: VocabularyType,
   vocabularyEntryList: VocabularyEntry[],
+  romanCountThreshold: number,
 }
 
-type LibraryOperatorActionType = { type: 'use', dictionaryName: string } | { type: 'disuse', dictionaryName: string } | { type: 'load' } | { type: 'constructVocabulary' } | { type: 'type', vocabularyType: VocabularyType };
+type LibraryOperatorActionType = { type: 'use', dictionaryName: string } | { type: 'disuse', dictionaryName: string } | { type: 'load' } | { type: 'constructVocabulary' } | { type: 'type', vocabularyType: VocabularyType } | { type: 'romanCountThreshold', romanCountThreshold: number };
 
 // TODO 記号はもっとあるよね
 type PrintableASCII =

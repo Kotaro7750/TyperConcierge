@@ -6,12 +6,14 @@ import { StartSignal } from './StartSignal';
 import { SelectDictionaryPane } from './SelectDictionaryPane';
 
 import { useCountdownTimer } from './useCountdownTimer';
+import { LAP_LENGTH } from './useRomanEngine';
 
 import { GameStateContext } from './App';
 import { VocabularyContext } from './App';
 
 export function ModeSelectView() {
   const [isReady, setIsReady] = useState<boolean>(false);
+  const [romanCountThreshold, setRomanCountThreshold] = useState<number>(LAP_LENGTH*3);
   const [countdownTimer, startCountdownTimer, initCountdownTimer] = useCountdownTimer(3, () => startTyping());
   const transitionToTyping = useRef<boolean>(false);
 
@@ -31,6 +33,7 @@ export function ModeSelectView() {
       return;
     }
 
+    libraryOperator({ type: 'romanCountThreshold', romanCountThreshold: romanCountThreshold });
     libraryOperator({ type: 'constructVocabulary' });
     setIsReady(true);
     startCountdownTimer();
@@ -74,6 +77,8 @@ export function ModeSelectView() {
   const WORD_TOOLTIP_TEXT = `辞書（${WORD_DICTIONARY_EXTENSION}形式のファイル）に含まれる単語からいくつかランダムに選びます。\n文章との併用はできません。`;
   const SENTENCE_TOOLTIP_TEXT =`辞書（${SENTENCE_DICTIONARY_EXTENSION}形式のファイル）に含まれる文章からランダムに選びます。\n単語との併用はできません。` 
 
+  const ROMAN_THRESHOLD_TOOLTIP_TEXT = 'ローマ字を何文字打ったらゲームが終了するかというタイプ数です。\n平均的な人だと1分間に150から250タイプできるとされているので、1分間のゲームをしたい場合にはこれくらいの値にすると良いです。';
+
   // 現在有効になっている語彙タイプに合わせて辞書リストを変える
   const effectiveAvailableDictionaryList = library.usedVocabularyType == 'word' ? library.availableDictionaryList.word : library.availableDictionaryList.sentence;
   const effectiveUsedDictionaryList = library.usedVocabularyType == 'word' ? library.usedDictionaryFileNameList.word : library.usedDictionaryFileNameList.sentence;
@@ -92,11 +97,11 @@ export function ModeSelectView() {
                   <div className='p-0 d-flex bg-white'>
                     <div className='btn-group'>
                       <label className={`btn ${library.usedVocabularyType == 'word' ? 'btn-secondary' : 'btn-outline-secondary'} text-dark border border-secondary border-2`} data-bs-toggle='tooltip' data-bs-placement='top' title={WORD_TOOLTIP_TEXT}>
-                        単語<input type='radio' className='btn-check' onClick={() => libraryOperator({type:'type', vocabularyType:'word'})}/>
+                        単語<input type='radio' className='btn-check' onClick={() => libraryOperator({ type: 'type', vocabularyType: 'word' })} />
                       </label>
 
                       <label className={`btn ${library.usedVocabularyType == 'sentence' ? 'btn-secondary' : 'btn-outline-secondary'} text-dark border border-secondary border-2 border-start-0`} data-bs-toggle='tooltip' data-bs-placement='top' title={SENTENCE_TOOLTIP_TEXT}>
-                        文章<input type='radio' className='btn-check' onClick={() => libraryOperator({type:'type', vocabularyType:'sentence'})}/>
+                        文章<input type='radio' className='btn-check' onClick={() => libraryOperator({ type: 'type', vocabularyType: 'sentence' })} />
                       </label>
                     </div>
                   </div>
@@ -110,6 +115,21 @@ export function ModeSelectView() {
               <div className='h-25 row p-2 border border-secondary rounded-3 border-2 bg-white'>
                 <SelectDictionaryPane availableDictionaryList={effectiveAvailableDictionaryList} usedDictionaryList={effectiveUsedDictionaryList} libraryOperator={libraryOperator} />
               </div>
+
+              {
+                library.usedVocabularyType == 'word'
+                  ? (
+                    <div className='row d-flex justify-content-center mt-2'>
+                      <div className='d-flex justify-content-center'>
+                        <label className='form-label w-75 d-flex'>
+                          <input type='range' className='form-range w-75' min={LAP_LENGTH} max={600} step={LAP_LENGTH} value={romanCountThreshold} onChange={e => setRomanCountThreshold(Number(e.target.value))}/>
+                          <span className='fs-6 text-nowrap ms-auto'>{romanCountThreshold}<i className='bi bi-question-circle' data-bs-toggle='tooltip' data-bs-placement='top' title={ROMAN_THRESHOLD_TOOLTIP_TEXT} /></span>
+                        </label>
+                      </div>
+                    </div>
+                  )
+                  : undefined
+              }
 
               <div className='row d-flex justify-content-center mt-3'>
                 <div className='col-6 d-flex justify-content-center'>

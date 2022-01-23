@@ -4,6 +4,7 @@ import { ResultView } from './ResultView';
 import { ModeSelectView } from './ModeSelectView';
 
 import { useVocabulary } from './useVocabulary';
+import { LAP_LENGTH } from './useRomanEngine';
 
 // FIXME 関数の初期値を渡す場合にはどうしたらいいのだろうか
 export const VocabularyContext = createContext<{ library: Library, libraryOperator: (action: LibraryOperatorActionType) => void }>(
@@ -13,6 +14,7 @@ export const VocabularyContext = createContext<{ library: Library, libraryOperat
       usedDictionaryFileNameList: { word: [], sentence: [] },
       usedVocabularyType: 'word',
       vocabularyEntryList: [],
+      romanCountThreshold: LAP_LENGTH * 4,
     },
     libraryOperator: () => { },
   }
