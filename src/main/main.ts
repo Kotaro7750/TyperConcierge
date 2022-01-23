@@ -21,6 +21,8 @@ const createWindow = () => {
       preload: path.resolve(__dirname, 'preload.js'),
       defaultFontSize: 16,
     },
+    width: 900,
+    height: 675,
     minHeight: 675,
     minWidth: 900,
   });
