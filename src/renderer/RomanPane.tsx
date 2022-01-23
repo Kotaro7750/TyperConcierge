@@ -66,7 +66,7 @@ export function RomanPane(props: { paneInfo: RomanPaneInfo }) {
   }
 
   return (
-    <div className='row border border-secondary border-3 rounded-3 bg-white vh-40'>
+    <div className='row border border-secondary border-3 rounded-3 bg-white min-vh-40'>
       <LineWindow lineList={lapLineList} currentLineIndex={currentLapIndex} windowCapacity={5} />
     </div>
   );

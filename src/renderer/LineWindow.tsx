@@ -53,9 +53,12 @@ export function LineWindow(props: { lineList: JSX.Element[], currentLineIndex: n
     return firstLineIndex <= i && i <= lastLineIndex;
   });
 
+  const lineCountAfterWindow = (filledLineList.length - 1) - lastLineIndex;
+
   return (
     <div className='w-100 h-100 d-flex flex-column justify-content-between'>
       {activeLineList}
+      {lineCountAfterWindow != 0 ? <div className='fs-6 d-flex justify-content-center'><i className="bi bi-chevron-double-down"></i>{lineCountAfterWindow}行</div> : undefined}
     </div>
   )
 }
